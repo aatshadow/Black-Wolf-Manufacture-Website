@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, animate } from "framer-motion";
+import Image from "next/image";
 
 /* ─── TRANSITION GRAPHIC ─── */
 function TransitionLine() {
@@ -259,7 +260,7 @@ function Scene8() {
         className="relative"
       >
         <div className="h-24 w-24 rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm md:h-28 md:w-28">
-          <img src="/img/logo.png" alt="" className="h-full w-full object-contain" />
+          <Image src="/img/logo.png" alt="BlackWolf" width={112} height={112} className="h-full w-full object-contain" />
         </div>
         <motion.div
           initial={{ opacity: 0 }}
