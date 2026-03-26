@@ -8,6 +8,7 @@ import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { CinematicIntro } from "@/components/ui/cinematic-intro";
 import { SpaceBackground } from "@/components/ui/space-background";
 import { ScrollNavigator } from "@/components/ui/page-transition";
+import { AIChatWidget } from "@/components/ui/ai-chat-widget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
         <Navbar />
         <main className="relative z-10">{children}</main>
         <Footer />
+        <AIChatWidget />
       </body>
     </html>
   );

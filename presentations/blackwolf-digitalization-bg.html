@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlackWolf — Програма за Дигитализация България 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050510;
+  --bg-card: rgba(15, 15, 35, 0.7);
+  --blue-700: #1D4ED8;
+  --blue-600: #2563EB;
+  --blue-500: #3B82F6;
+  --blue-400: #60A5FA;
+  --blue-300: #93C5FD;
+  --white: #F1F5F9;
+  --gray: #94A3B8;
+  --gray-dark: #334155;
+  --glow: 0 0 40px rgba(37, 99, 235, 0.3);
+  --glow-sm: 0 0 20px rgba(37, 99, 235, 0.15);
+}
+
+html, body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── BACKGROUND EFFECTS ── */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-nebula {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.nebula-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.12;
+  animation: nebulaFloat 20s ease-in-out infinite;
+}
+
+.nebula-orb:nth-child(1) {
+  width: 600px; height: 600px;
+  background: var(--blue-600);
+  top: -200px; left: -100px;
+  animation-delay: 0s;
+}
+.nebula-orb:nth-child(2) {
+  width: 500px; height: 500px;
+  background: var(--blue-400);
+  bottom: -200px; right: -100px;
+  animation-delay: -7s;
+  animation-duration: 25s;
+}
+.nebula-orb:nth-child(3) {
+  width: 400px; height: 400px;
+  background: #7C3AED;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -14s;
+  animation-duration: 30s;
+  opacity: 0.06;
+}
+
+@keyframes nebulaFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(40px, -30px) scale(1.05); }
+  50% { transform: translate(-20px, 40px) scale(0.95); }
+  75% { transform: translate(30px, 20px) scale(1.03); }
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue-600), var(--blue-400));
+  z-index: 1000;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+}
+
+/* ── SLIDE COUNTER ── */
+.slide-counter {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--gray);
+  font-variant-numeric: tabular-nums;
+}
+.slide-counter .current {
+  color: var(--blue-400);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* ── NAV ARROWS ── */
+.nav-arrows {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  border-radius: 50%;
+  background: rgba(5, 5, 16, 0.8);
+  color: var(--blue-400);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+.nav-btn:hover {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: var(--blue-500);
+  box-shadow: var(--glow-sm);
+}
+.nav-btn svg { width: 18px; height: 18px; }
+
+/* ── SLIDES CONTAINER ── */
+.slides-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(30px);
+  z-index: 1;
+}
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  z-index: 2;
+}
+.slide.exit-up {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.slide-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── TYPOGRAPHY ── */
+.slide-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--blue-400);
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 32px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.slide-title .accent {
+  background: linear-gradient(135deg, var(--blue-400), var(--blue-300));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.slide-subtitle {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--gray);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 700px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Staggered reveal animation */
+.slide.active .reveal {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .reveal:nth-child(1) { animation-delay: 0.1s; }
+.slide.active .reveal:nth-child(2) { animation-delay: 0.2s; }
+.slide.active .reveal:nth-child(3) { animation-delay: 0.3s; }
+.slide.active .reveal:nth-child(4) { animation-delay: 0.4s; }
+.slide.active .reveal:nth-child(5) { animation-delay: 0.5s; }
+.slide.active .reveal:nth-child(6) { animation-delay: 0.6s; }
+.slide.active .reveal:nth-child(7) { animation-delay: 0.7s; }
+.slide.active .reveal:nth-child(8) { animation-delay: 0.8s; }
+.slide.active .reveal:nth-child(9) { animation-delay: 0.9s; }
+.slide.active .reveal:nth-child(10) { animation-delay: 1.0s; }
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── COVER SLIDE ── */
+.cover-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cover-logo {
+  width: 80px;
+  height: auto;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: scale(0.8);
+  filter: drop-shadow(0 0 30px rgba(37, 99, 235, 0.4));
+}
+.slide.active .cover-logo {
+  animation: logoReveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+@keyframes logoReveal {
+  to { opacity: 1; transform: scale(1); }
+}
+.cover-brand {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(10px);
+}
+.slide.active .cover-brand {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+.cover-title {
+  font-size: clamp(36px, 5.5vw, 64px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--white) 0%, var(--blue-300) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.slide.active .cover-title {
+  animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+.cover-sub {
+  font-size: clamp(14px, 1.8vw, 18px);
+  color: var(--gray);
+  font-weight: 400;
+  letter-spacing: 2px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide.active .cover-sub {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+}
+
+/* Animated glow ring on cover */
+.cover-glow-ring {
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: glowPulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+.cover-glow-ring:nth-child(2) {
+  width: 700px; height: 700px;
+  animation-delay: -1.5s;
+  border-color: rgba(37, 99, 235, 0.05);
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ── PROBLEM SLIDE ── */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.problem-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.problem-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 12px;
+  font-size: 15px;
+  color: var(--gray);
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateX(-20px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.problem-item:hover {
+  border-color: rgba(37, 99, 235, 0.2);
+  box-shadow: var(--glow-sm);
+}
+.slide.active .problem-item {
+  animation: revealLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .problem-item:nth-child(1) { animation-delay: 0.3s; }
+.slide.active .problem-item:nth-child(2) { animation-delay: 0.4s; }
+.slide.active .problem-item:nth-child(3) { animation-delay: 0.5s; }
+.slide.active .problem-item:nth-child(4) { animation-delay: 0.6s; }
+@keyframes revealLeft {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.problem-icon {
+  width: 20px; height: 20px;
+  color: #EF4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stat-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.stat-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  border-radius: 16px;
+  text-align: center;
+  opacity: 0;
+  transform: translateX(20px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.stat-card:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: var(--glow);
+  transform: translateY(-2px) !important;
+}
+.slide.active .stat-card {
+  animation: revealRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .stat-card:nth-child(1) { animation-delay: 0.5s; }
+.slide.active .stat-card:nth-child(2) { animation-delay: 0.65s; }
+@keyframes revealRight {
+  to { opacity: 1; transform: translateX(0); }
+}
+.stat-number {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--blue-400), var(--blue-300));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-desc {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+/* ── TEAM SLIDE ── */
+.team-top {
+  margin-bottom: 48px;
+}
+.team-points {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 32px;
+  margin-top: 20px;
+}
+.team-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--gray);
+  opacity: 0;
+  transform: translateY(10px);
+}
+.slide.active .team-point {
+  animation: revealUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .team-point:nth-child(1) { animation-delay: 0.3s; }
+.slide.active .team-point:nth-child(2) { animation-delay: 0.4s; }
+.slide.active .team-point:nth-child(3) { animation-delay: 0.5s; }
+.slide.active .team-point:nth-child(4) { animation-delay: 0.6s; }
+.team-point-dot {
+  width: 6px; height: 6px;
+  background: var(--blue-500);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.team-profiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.profile-card {
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(25px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.profile-card:hover {
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: var(--glow);
+  transform: translateY(-4px) !important;
+}
+.slide.active .profile-card {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .profile-card:nth-child(1) { animation-delay: 0.5s; }
+.slide.active .profile-card:nth-child(2) { animation-delay: 0.65s; }
+.slide.active .profile-card:nth-child(3) { animation-delay: 0.8s; }
+
+.profile-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700;
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+  color: white;
+}
+.profile-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.profile-role {
+  font-size: 13px;
+  color: var(--blue-400);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+/* ── PILLARS / CARDS ── */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+.pillar-card {
+  padding: 28px 20px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pillar-card:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: var(--glow);
+  transform: translateY(-6px) !important;
+  background: rgba(37, 99, 235, 0.05);
+}
+.slide.active .pillar-card {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .pillar-card:nth-child(1) { animation-delay: 0.2s; }
+.slide.active .pillar-card:nth-child(2) { animation-delay: 0.3s; }
+.slide.active .pillar-card:nth-child(3) { animation-delay: 0.4s; }
+.slide.active .pillar-card:nth-child(4) { animation-delay: 0.5s; }
+.slide.active .pillar-card:nth-child(5) { animation-delay: 0.6s; }
+
+.pillar-icon {
+  width: 48px; height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.05));
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+.pillar-icon svg { width: 24px; height: 24px; color: var(--blue-400); }
+.pillar-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.pillar-desc {
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+/* ── TIMELINE ── */
+.timeline {
+  position: relative;
+  display: flex;
+  gap: 0;
+  margin-top: 16px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 32px;
+  left: 40px;
+  right: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--blue-600), var(--blue-400), var(--blue-600));
+  opacity: 0;
+}
+.slide.active .timeline::before {
+  animation: lineGrow 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+@keyframes lineGrow {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+.timeline-item {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  padding: 0 8px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.slide.active .timeline-item {
+  animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .timeline-item:nth-child(1) { animation-delay: 0.4s; }
+.slide.active .timeline-item:nth-child(2) { animation-delay: 0.55s; }
+.slide.active .timeline-item:nth-child(3) { animation-delay: 0.7s; }
+.slide.active .timeline-item:nth-child(4) { animation-delay: 0.85s; }
+.slide.active .timeline-item:nth-child(5) { animation-delay: 1.0s; }
+
+.timeline-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--blue-500);
+  margin: 24px auto 20px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+}
+.timeline-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(37, 99, 235, 0.3);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0; }
+}
+.timeline-week {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--blue-400);
+  text-transform: uppercase;
+}
+.timeline-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 8px 0 6px;
+}
+.timeline-desc {
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+/* ── RESULTS SLIDE ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.result-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  opacity: 0;
+  transform: translateY(20px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.result-card:hover {
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: var(--glow);
+}
+.slide.active .result-card {
+  animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .result-card:nth-child(1) { animation-delay: 0.3s; }
+.slide.active .result-card:nth-child(2) { animation-delay: 0.45s; }
+.result-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue-400);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.result-card-company {
+  font-size: 12px;
+  color: var(--gray);
+  margin-bottom: 20px;
+}
+.result-metrics {
+  display: flex;
+  gap: 20px;
+}
+.result-metric {
+  flex: 1;
+}
+.result-metric-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.result-metric-label {
+  font-size: 12px;
+  color: var(--gray);
+  line-height: 1.4;
+}
+.big-stat-banner {
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.03));
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: 16px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.slide.active .big-stat-banner {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+}
+.big-stat-text {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+}
+.big-stat-text .accent {
+  background: linear-gradient(135deg, var(--blue-400), var(--blue-300));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── COMPLIANCE SLIDE ── */
+.compliance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.compliance-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--white);
+  opacity: 0;
+  transform: translateY(15px);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.compliance-item:hover {
+  border-color: rgba(37, 99, 235, 0.2);
+  box-shadow: var(--glow-sm);
+}
+.slide.active .compliance-item {
+  animation: revealUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .compliance-item:nth-child(1) { animation-delay: 0.2s; }
+.slide.active .compliance-item:nth-child(2) { animation-delay: 0.3s; }
+.slide.active .compliance-item:nth-child(3) { animation-delay: 0.4s; }
+.slide.active .compliance-item:nth-child(4) { animation-delay: 0.5s; }
+.slide.active .compliance-item:nth-child(5) { animation-delay: 0.6s; }
+.slide.active .compliance-item:nth-child(6) { animation-delay: 0.7s; }
+
+.check-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: #22C55E;
+}
+.check-icon svg { width: 16px; height: 16px; }
+
+.compliance-footer {
+  padding: 20px 28px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.02));
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--blue-300);
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide.active .compliance-footer {
+  animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+}
+
+/* ── WHY BLACKWOLF ── */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.why-card {
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(25px);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.why-card:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: var(--glow);
+  transform: translateY(-6px) !important;
+}
+.slide.active .why-card {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.slide.active .why-card:nth-child(1) { animation-delay: 0.3s; }
+.slide.active .why-card:nth-child(2) { animation-delay: 0.45s; }
+.slide.active .why-card:nth-child(3) { animation-delay: 0.6s; }
+.slide.active .why-card:nth-child(4) { animation-delay: 0.75s; }
+
+.why-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.05));
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+.why-icon svg { width: 28px; height: 28px; color: var(--blue-400); }
+.why-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.why-desc {
+  font-size: 13px;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+/* ── CTA SLIDE ── */
+.cta-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cta-title {
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 800;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--white), var(--blue-300));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.slide.active .cta-title {
+  animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+.cta-sub {
+  font-size: 18px;
+  color: var(--gray);
+  margin-bottom: 40px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide.active .cta-sub {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+.cta-contacts {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide.active .cta-contacts {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
+}
+.cta-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: var(--blue-300);
+  font-weight: 500;
+}
+.cta-contact-item svg { width: 20px; height: 20px; color: var(--blue-400); }
+
+.cta-tagline {
+  font-size: 15px;
+  color: var(--gray);
+  max-width: 500px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  opacity: 0;
+  transform: translateY(15px);
+}
+.slide.active .cta-tagline {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+}
+.cta-logo {
+  width: 48px;
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.3));
+}
+.slide.active .cta-logo {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.85s forwards;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .slide { padding: 40px; }
+  .pillars-grid { grid-template-columns: repeat(3, 1fr); }
+  .why-grid { grid-template-columns: repeat(2, 1fr); }
+  .timeline { flex-wrap: wrap; }
+  .timeline-item { flex: 0 0 33%; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: 1fr; }
+  .compliance-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .slide { padding: 24px; }
+  .pillars-grid { grid-template-columns: 1fr 1fr; }
+  .why-grid { grid-template-columns: 1fr; }
+  .team-profiles { grid-template-columns: 1fr; }
+  .team-points { grid-template-columns: 1fr; }
+  .timeline-item { flex: 0 0 50%; }
+  .nav-arrows { bottom: 20px; }
+  .slide-counter { bottom: 20px; right: 20px; }
+  .cta-contacts { flex-direction: column; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-nebula">
+  <div class="nebula-orb"></div>
+  <div class="nebula-orb"></div>
+  <div class="nebula-orb"></div>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="slide-counter">
+  <span class="current" id="counterCurrent">01</span>
+  <span> / 09</span>
+</div>
+
+<div class="nav-arrows">
+  <button class="nav-btn" id="prevBtn" aria-label="Предишен слайд">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="nav-btn" id="nextBtn" aria-label="Следващ слайд">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</div>
+
+<div class="slides-container" id="slidesContainer">
+
+  <!-- ═══════ SLIDE 1 — COVER ═══════ -->
+  <div class="slide active" data-slide="0">
+    <div class="cover-glow-ring"></div>
+    <div class="cover-glow-ring" style="width:700px;height:700px;animation-delay:-1.5s"></div>
+    <div class="slide-inner cover-content">
+      <img src="../public/img/logo.png" alt="BlackWolf" class="cover-logo">
+      <div class="cover-brand">BLACKWOLF</div>
+      <h1 class="cover-title">Цифрова Инфраструктура<br>за Производство</h1>
+      <p class="cover-sub">Програма за Дигитализация — България 2026</p>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 2 — PROBLEM ═══════ -->
+  <div class="slide" data-slide="1">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Предизвикателството</p>
+      <h2 class="slide-title reveal">Българското производство <span class="accent">изостава</span></h2>
+      <div class="problem-grid" style="margin-top: 32px;">
+        <ul class="problem-list">
+          <li class="problem-item">
+            <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            <span>Excel таблици и ръчни процеси за управление на производството</span>
+          </li>
+          <li class="problem-item">
+            <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            <span>Разпокъсани системи без свързаност помежду им</span>
+          </li>
+          <li class="problem-item">
+            <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            <span>Липса на видимост в реално време върху операциите</span>
+          </li>
+          <li class="problem-item">
+            <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            <span>Нулева киберсигурност и защита на бизнес данните</span>
+          </li>
+        </ul>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-number" data-count="73">0%</div>
+            <div class="stat-desc">от производителите управляват<br>бизнеса си с таблици</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">&euro;2.4M</div>
+            <div class="stat-desc">годишни загуби от<br>оперативна неефективност</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 3 — WHO WE ARE ═══════ -->
+  <div class="slide" data-slide="2">
+    <div class="slide-inner">
+      <div class="team-top">
+        <p class="slide-label reveal">Кои сме ние</p>
+        <h2 class="slide-title reveal">Европейска компания за <span class="accent">цифрова инфраструктура</span></h2>
+        <div class="team-points">
+          <div class="team-point"><span class="team-point-dot"></span>Специализирани в производствения сектор</div>
+          <div class="team-point"><span class="team-point-dot"></span>Екип с опит в NASA, Instagram, Uber Eats</div>
+          <div class="team-point"><span class="team-point-dot"></span>Офиси в Испания и България</div>
+          <div class="team-point"><span class="team-point-dot"></span>Пълен набор от цифрови решения</div>
+        </div>
+      </div>
+      <div class="team-profiles">
+        <div class="profile-card">
+          <div class="profile-avatar">AG</div>
+          <div class="profile-name">Alex Guti&eacute;rrez</div>
+          <div class="profile-role">CEO</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar">AS</div>
+          <div class="profile-name">Alejandro Silvestre</div>
+          <div class="profile-role">CTO</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-avatar">ЗВ</div>
+          <div class="profile-name">Златина Вълчева</div>
+          <div class="profile-role">HEAD OF BD</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 4 — WHAT WE DELIVER ═══════ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Какво предлагаме</p>
+      <h2 class="slide-title reveal">Пълна <span class="accent">цифрова екосистема</span></h2>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="pillar-title">CRM система</div>
+          <div class="pillar-desc">Управление на клиенти и продажби</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="pillar-title">ERP система</div>
+          <div class="pillar-desc">Управление на операции и инвентар</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          </div>
+          <div class="pillar-title">BI платформа</div>
+          <div class="pillar-desc">Бизнес анализи и отчети в реално време</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="pillar-title">Уебсайтове и eCommerce</div>
+          <div class="pillar-desc">Онлайн присъствие и продажби</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="pillar-title">Киберсигурност (SOC)</div>
+          <div class="pillar-desc">24/7 защита с AI технологии</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 5 — PROCESS ═══════ -->
+  <div class="slide" data-slide="4">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Как работим</p>
+      <h2 class="slide-title reveal">От анализ до резултат за <span class="accent">5 седмици</span></h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-week">Седмица 1</div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Анализ</div>
+          <div class="timeline-desc">Одит на текущите операции и процеси</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Седмица 2</div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Архитектура</div>
+          <div class="timeline-desc">Проектиране на цифровата система</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Седмица 3</div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Разработка</div>
+          <div class="timeline-desc">Изграждане на инфраструктурата</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Седмица 4</div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Внедряване</div>
+          <div class="timeline-desc">Миграция на данни и обучение</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Седмица 5</div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">Оптимизация</div>
+          <div class="timeline-desc">Настройка и AI оптимизация</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 6 — RESULTS ═══════ -->
+  <div class="slide" data-slide="5">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Доказани Резултати</p>
+      <h2 class="slide-title reveal">Реални резултати, <span class="accent">реални компании</span></h2>
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-card-title">KINGLY</div>
+          <div class="result-card-company">Текстилно производство, България</div>
+          <div class="result-metrics">
+            <div class="result-metric">
+              <div class="result-metric-value">-73%</div>
+              <div class="result-metric-label">време за обработка на поръчки</div>
+            </div>
+            <div class="result-metric">
+              <div class="result-metric-value">0</div>
+              <div class="result-metric-label">загубени клиенти</div>
+            </div>
+            <div class="result-metric">
+              <div class="result-metric-value">4</div>
+              <div class="result-metric-label">служители преразпределени</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-card">
+          <div class="result-card-title">FBA PRO ACADEMY</div>
+          <div class="result-card-company">Образование и eCommerce</div>
+          <div class="result-metrics">
+            <div class="result-metric">
+              <div class="result-metric-value">&euro;500K+</div>
+              <div class="result-metric-label">приходи за 1 месец</div>
+            </div>
+            <div class="result-metric">
+              <div class="result-metric-value">5</div>
+              <div class="result-metric-label">системи интегрирани</div>
+            </div>
+            <div class="result-metric">
+              <div class="result-metric-value">100%</div>
+              <div class="result-metric-label">видимост върху операциите</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="big-stat-banner">
+        <div class="big-stat-text">Над <span class="accent">80% подобрение</span> на оперативната ефективност</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 7 — COMPLIANCE ═══════ -->
+  <div class="slide" data-slide="6">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Съответствие</p>
+      <h2 class="slide-title reveal">Пълно покритие на <span class="accent">Програмата за Дигитализация</span></h2>
+      <div class="compliance-grid">
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>ERP системи за управление на ресурсите</span>
+        </div>
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>CRM за управление на взаимоотношенията с клиенти</span>
+        </div>
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>Уебсайтове и електронна търговия</span>
+        </div>
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>Бизнес интелигентност и анализи</span>
+        </div>
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>Киберсигурност и защита на данни</span>
+        </div>
+        <div class="compliance-item">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span>AI и автоматизация на процесите</span>
+        </div>
+      </div>
+      <div class="compliance-footer">
+        Поемаме цялата документация и отчетност по програмата
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 8 — WHY BLACKWOLF ═══════ -->
+  <div class="slide" data-slide="7">
+    <div class="slide-inner">
+      <p class="slide-label reveal">Защо BlackWolf</p>
+      <h2 class="slide-title reveal">Вашето <span class="accent">конкурентно предимство</span></h2>
+      <div class="why-grid" style="margin-top: 16px;">
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <div class="why-title">Всичко в едно</div>
+          <div class="why-desc">Пълна интеграция на всички системи от ден 1</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="why-title">Скорост</div>
+          <div class="why-desc">5 седмици от старт до пълно пускане в действие</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <div class="why-title">За производство</div>
+          <div class="why-desc">Специализирани решения за производствения сектор</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22l-.75-12.07A4.001 4.001 0 0 1 12 2z"/><path d="M9 6.24C7.44 7.34 4 9.7 4 14c0 2 .5 3.5 1.5 4.5"/><path d="M15 6.24c1.56 1.1 5 3.46 5 7.76 0 2-.5 3.5-1.5 4.5"/></svg>
+          </div>
+          <div class="why-title">AI технологии</div>
+          <div class="why-desc">Вградени в ядрото, не добавени отгоре</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 9 — CTA ═══════ -->
+  <div class="slide" data-slide="8">
+    <div class="cover-glow-ring"></div>
+    <div class="cover-glow-ring" style="width:700px;height:700px;animation-delay:-1.5s"></div>
+    <div class="slide-inner cta-content">
+      <h2 class="cta-title">Да започнем</h2>
+      <p class="cta-sub">Свържете се с нас за безплатна консултация</p>
+      <div class="cta-contacts">
+        <div class="cta-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
+          <span>contact@blackwolfsec.io</span>
+        </div>
+        <div class="cta-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span>blackwolfsec.io</span>
+        </div>
+      </div>
+      <p class="cta-tagline">Програма за Дигитализация на България — Вашият партньор за цифрова трансформация</p>
+      <img src="../public/img/logo.png" alt="BlackWolf" class="cta-logo">
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const TOTAL = 9;
+  let current = 0;
+  let isTransitioning = false;
+
+  const container = document.getElementById('slidesContainer');
+  const slides = container.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progressBar');
+  const counterCurrent = document.getElementById('counterCurrent');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function updateProgress() {
+    const pct = ((current + 1) / TOTAL) * 100;
+    progressBar.style.width = pct + '%';
+    counterCurrent.textContent = String(current + 1).padStart(2, '0');
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= TOTAL || index === current || isTransitioning) return;
+    isTransitioning = true;
+
+    const prev = slides[current];
+    const next = slides[index];
+
+    // Determine direction
+    const goingDown = index > current;
+    prev.classList.remove('active');
+    prev.classList.add(goingDown ? 'exit-up' : '');
+    prev.style.transform = goingDown ? 'translateY(-30px)' : 'translateY(30px)';
+    prev.style.opacity = '0';
+
+    // Prep next slide
+    next.style.transform = goingDown ? 'translateY(30px)' : 'translateY(-30px)';
+    next.style.opacity = '0';
+    next.style.visibility = 'visible';
+
+    // Force reflow
+    void next.offsetWidth;
+
+    // Reset animations on the next slide's children
+    next.querySelectorAll('.reveal, .problem-item, .stat-card, .profile-card, .pillar-card, .timeline-item, .result-card, .compliance-item, .compliance-footer, .big-stat-banner, .why-card').forEach(el => {
+      el.style.animation = 'none';
+      el.style.opacity = '0';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+
+    requestAnimationFrame(() => {
+      next.classList.add('active');
+      next.style.transform = '';
+      next.style.opacity = '';
+      current = index;
+      updateProgress();
+
+      setTimeout(() => {
+        prev.style.visibility = 'hidden';
+        prev.style.transform = '';
+        prev.style.opacity = '';
+        prev.classList.remove('exit-up');
+        isTransitioning = false;
+      }, 700);
+    });
+  }
+
+  function goNext() { goTo(current + 1); }
+  function goPrev() { goTo(current - 1); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      goNext();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goPrev();
+    }
+  });
+
+  // Button navigation
+  prevBtn.addEventListener('click', goPrev);
+  nextBtn.addEventListener('click', goNext);
+
+  // Touch / Swipe
+  let touchStartY = 0;
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartY = e.changedTouches[0].screenY;
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const absDy = Math.abs(dy);
+    const absDx = Math.abs(dx);
+
+    if (Math.max(absDx, absDy) < 40) return;
+
+    if (absDx > absDy) {
+      // Horizontal swipe
+      if (dx < 0) goNext();
+      else goPrev();
+    } else {
+      // Vertical swipe
+      if (dy < 0) goNext();
+      else goPrev();
+    }
+  }, { passive: true });
+
+  // Mouse wheel
+  let wheelTimeout = false;
+  document.addEventListener('wheel', function(e) {
+    if (wheelTimeout) return;
+    wheelTimeout = true;
+    if (e.deltaY > 30) goNext();
+    else if (e.deltaY < -30) goPrev();
+    setTimeout(() => { wheelTimeout = false; }, 800);
+  }, { passive: true });
+
+  // Counter animation for stat numbers
+  function animateCounters() {
+    const observer = new IntersectionObserver(() => {});
+    // Animate the 73% stat when slide 2 becomes active
+    const checkSlide = () => {
+      const slide1 = slides[1];
+      if (slide1.classList.contains('active')) {
+        const counter = slide1.querySelector('[data-count]');
+        if (counter && !counter.dataset.animated) {
+          counter.dataset.animated = 'true';
+          const target = parseInt(counter.dataset.count);
+          let val = 0;
+          const step = () => {
+            val += 2;
+            if (val > target) val = target;
+            counter.textContent = val + '%';
+            if (val < target) requestAnimationFrame(step);
+          };
+          setTimeout(step, 600);
+        }
+      }
+    };
+    // Poll on slide change
+    const origGoTo = goTo;
+    const patchedGoTo = function(index) {
+      origGoTo(index);
+      setTimeout(checkSlide, 400);
+    };
+    // Re-wire
+    prevBtn.removeEventListener('click', goPrev);
+    nextBtn.removeEventListener('click', goNext);
+    // We need to intercept - simplest: use MutationObserver
+    const mo = new MutationObserver(() => {
+      checkSlide();
+    });
+    slides.forEach(s => mo.observe(s, { attributes: true, attributeFilter: ['class'] }));
+  }
+  animateCounters();
+
+  // Initial
+  updateProgress();
+})();
+</script>
+</body>
+</html>

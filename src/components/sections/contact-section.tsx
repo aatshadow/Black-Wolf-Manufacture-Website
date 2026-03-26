@@ -24,17 +24,41 @@ export function ContactSection() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  const [submitError, setSubmitError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError("");
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Required";
     if (!formData.email.trim()) newErrors.email = "Required";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email";
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          companyName: formData.company,
+          companySize: formData.size,
+          revenue: formData.revenue,
+          message: formData.message,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Something went wrong");
+      }
+      setIsSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to send. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -132,6 +156,9 @@ export function ContactSection() {
                       )}
                     </span>
                   </motion.button>
+                  {submitError && (
+                    <p className="text-center text-xs text-red-400">{submitError}</p>
+                  )}
                   <p className="text-center text-[10px] text-white/20 md:text-[11px]">We respect your privacy. Your information will never be shared.</p>
                 </motion.form>
               ) : (
