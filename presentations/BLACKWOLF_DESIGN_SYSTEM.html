@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLACKWOLF — Design System v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050510;
+    --bg-card: rgba(255,255,255,0.02);
+    --bg-card-hover: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --blue-400: #60A5FA;
+    --blue-500: #3B82F6;
+    --blue-600: #2563EB;
+    --blue-700: #1D4ED8;
+    --blue-800: #1E40AF;
+    --text: #E4E4E7;
+    --text-50: rgba(255,255,255,0.50);
+    --text-40: rgba(255,255,255,0.40);
+    --text-30: rgba(255,255,255,0.30);
+    --text-20: rgba(255,255,255,0.20);
+    --green: #22C55E;
+    --red: #EF4444;
+    --amber: #F59E0B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    padding: 120px 0 80px;
+    text-align: center;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
+    filter: blur(100px);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.03);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-50);
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-600);
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .hero p {
+    font-size: 16px;
+    color: var(--text-40);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Section */
+  .section {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+  .section-header {
+    margin-bottom: 48px;
+  }
+  .section-header h2 {
+    font-size: clamp(24px, 3.5vw, 40px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    font-size: 14px;
+    color: var(--text-40);
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blue-400);
+    margin-bottom: 12px;
+  }
+
+  /* Color Grid */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .color-card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .color-card:hover { border-color: var(--border-hover); }
+  .color-swatch {
+    height: 80px;
+    position: relative;
+  }
+  .color-info {
+    padding: 12px 14px;
+    background: var(--bg-card);
+  }
+  .color-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .color-value {
+    font-size: 11px;
+    color: var(--text-40);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* Token Table */
+  .token-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .token-table th {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-40);
+  }
+  .token-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top;
+  }
+  .token-table tr:hover td { background: var(--bg-card); }
+  .token-table code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(37,99,235,0.1);
+    color: var(--blue-400);
+  }
+
+  /* Code Block */
+  .code-block {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .code-block-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-40);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .code-block-header .lang {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(37,99,235,0.1);
+    color: var(--blue-400);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .code-block pre {
+    padding: 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-50);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .code-block .kw { color: #C084FC; }
+  .code-block .str { color: #86EFAC; }
+  .code-block .num { color: #FCD34D; }
+  .code-block .cmt { color: rgba(255,255,255,0.25); font-style: italic; }
+  .code-block .fn { color: #60A5FA; }
+  .code-block .prop { color: #F9A8D4; }
+
+  /* Card */
+  .card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    padding: 24px;
+    transition: all 0.3s;
+  }
+  .card:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-card-hover);
+  }
+  .card h4 {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .card p { font-size: 13px; color: var(--text-40); line-height: 1.6; }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Typography Showcase */
+  .type-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px 0;
+  }
+  .type-row {
+    display: flex;
+    align-items: baseline;
+    gap: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .type-meta {
+    min-width: 200px;
+    flex-shrink: 0;
+  }
+  .type-meta .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue-400);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .type-meta .spec {
+    font-size: 11px;
+    color: var(--text-30);
+    font-family: monospace;
+  }
+
+  /* Animation Preview */
+  .anim-preview {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .anim-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: var(--blue-600);
+  }
+  .anim-label {
+    font-size: 11px;
+    color: var(--text-40);
+    text-align: center;
+  }
+
+  /* Button Showcase */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 9999px;
+    background: var(--blue-600);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-primary:hover {
+    background: var(--blue-500);
+    box-shadow: 0 0 30px rgba(37,99,235,0.3);
+  }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 9999px;
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.10);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover {
+    border-color: rgba(255,255,255,0.25);
+    background: var(--bg-card-hover);
+  }
+
+  /* Swatch row */
+  .opacity-row {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+  }
+  .opacity-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .opacity-chip .box {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .opacity-chip .val {
+    font-size: 10px;
+    color: var(--text-30);
+    font-family: monospace;
+  }
+
+  /* Gradient swatches */
+  .gradient-swatch {
+    height: 80px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* Easing curve */
+  .easing-visual {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .easing-visual svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Prompt block */
+  .prompt-block {
+    border-radius: 16px;
+    border: 1px solid rgba(37,99,235,0.2);
+    background: rgba(37,99,235,0.05);
+    padding: 32px;
+    margin: 24px 0;
+  }
+  .prompt-block h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--blue-400);
+  }
+  .prompt-block pre {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-50);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Spacing */
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+  .mb-32 { margin-bottom: 32px; }
+  .mb-48 { margin-bottom: 48px; }
+  .mt-32 { margin-top: 32px; }
+  .mt-48 { margin-top: 48px; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-hover), transparent);
+    margin: 64px 0;
+  }
+
+  /* Z-index stack visual */
+  .z-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .z-layer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .z-layer .z-val {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--blue-400);
+    min-width: 70px;
+  }
+  .z-layer .z-name { color: var(--text-50); }
+
+  /* Component preview card */
+  .component-card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .component-preview {
+    padding: 32px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+  }
+  .component-code {
+    padding: 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-40);
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    overflow-x: auto;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: white; color: #111; }
+    .section { border-top-color: #e5e5e5; }
+    .card, .code-block, .prompt-block { border-color: #e5e5e5; background: #f9f9f9; }
+    .hero::before { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .type-row { flex-direction: column; gap: 8px; }
+    .type-meta { min-width: auto; }
+    .hero { padding: 80px 0 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                           -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Design System v1.0
+    </div>
+    <h1>BLACKWOLF<br>Design System</h1>
+    <p>The complete visual language, animation patterns, and component specifications for every BlackWolf product.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                              -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-label">Index</div>
+    <div class="grid-3">
+      <div class="card">
+        <h4>01 — Color System</h4>
+        <p>Core palette, opacities, gradients, nebula colors, semantic tokens</p>
+      </div>
+      <div class="card">
+        <h4>02 — Typography</h4>
+        <p>Font family, weight scale, size system, spacing, responsive clamp values</p>
+      </div>
+      <div class="card">
+        <h4>03 — Animation</h4>
+        <p>Easing curves, durations, Framer Motion patterns, CSS keyframes, interaction states</p>
+      </div>
+      <div class="card">
+        <h4>04 — Layout & Spacing</h4>
+        <p>Grid system, max widths, padding scale, responsive breakpoints, z-index stack</p>
+      </div>
+      <div class="card">
+        <h4>05 — Components</h4>
+        <p>Cards, buttons, badges, borders, shadows, gradients, blur effects</p>
+      </div>
+      <div class="card">
+        <h4>06 — Special Effects</h4>
+        <p>Space background, grain overlay, cursor follower, cinematic intro, scroll progress</p>
+      </div>
+      <div class="card">
+        <h4>07 — System Prompt</h4>
+        <p>Copy-paste prompt to replicate this design system in any AI-assisted project</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 01 — COLOR SYSTEM                                              -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">01</div>
+      <h2>Color System</h2>
+      <p>Deep space aesthetic with blue accents. Every surface uses transparency over the #050510 base.</p>
+    </div>
+
+    <!-- Core Palette -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Core Palette</h4>
+    <div class="color-grid mb-48">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#050510;"></div>
+        <div class="color-info">
+          <div class="color-name">Background</div>
+          <div class="color-value">#050510 · rgb(5,5,16)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#E4E4E7;"></div>
+        <div class="color-info">
+          <div class="color-name">Foreground</div>
+          <div class="color-value">#E4E4E7 · zinc-200</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#2563EB;"></div>
+        <div class="color-info">
+          <div class="color-name">Blue 600 — Primary</div>
+          <div class="color-value">#2563EB</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#3B82F6;"></div>
+        <div class="color-info">
+          <div class="color-name">Blue 500 — Action</div>
+          <div class="color-value">#3B82F6</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#60A5FA;"></div>
+        <div class="color-info">
+          <div class="color-name">Blue 400 — Accent</div>
+          <div class="color-value">#60A5FA</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#1D4ED8;"></div>
+        <div class="color-info">
+          <div class="color-name">Blue 700 — Dark</div>
+          <div class="color-value">#1D4ED8</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#1E40AF;"></div>
+        <div class="color-info">
+          <div class="color-name">Blue 800 — Deepest</div>
+          <div class="color-value">#1E40AF</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:linear-gradient(135deg, #0F173C, #0A0F32);"></div>
+        <div class="color-info">
+          <div class="color-name">Nebula Base</div>
+          <div class="color-value">#0F173C → #0A0F32</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Semantic Colors -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Semantic Colors</h4>
+    <div class="color-grid mb-48">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#22C55E;"></div>
+        <div class="color-info">
+          <div class="color-name">Success / Won</div>
+          <div class="color-value">#22C55E · green-500</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#EF4444;"></div>
+        <div class="color-info">
+          <div class="color-name">Error / Lost</div>
+          <div class="color-value">#EF4444 · red-500</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#F59E0B;"></div>
+        <div class="color-info">
+          <div class="color-name">Warning / Pending</div>
+          <div class="color-value">#F59E0B · amber-500</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#8B5CF6;"></div>
+        <div class="color-info">
+          <div class="color-name">Accent Purple</div>
+          <div class="color-value">#8B5CF6 · violet-500</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- White Opacity Scale -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">White Opacity Scale</h4>
+    <div class="opacity-row mb-48">
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.02);"></div><div class="val">0.02</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.03);"></div><div class="val">0.03</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.04);"></div><div class="val">0.04</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.06);"></div><div class="val">0.06</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.08);"></div><div class="val">0.08</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.10);"></div><div class="val">0.10</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.12);"></div><div class="val">0.12</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.15);"></div><div class="val">0.15</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.20);"></div><div class="val">0.20</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.30);"></div><div class="val">0.30</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.40);"></div><div class="val">0.40</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(255,255,255,0.50);"></div><div class="val">0.50</div></div>
+    </div>
+    <p style="font-size:12px; color:var(--text-30); margin-top:-32px; margin-bottom:48px;">
+      <strong style="color:var(--text-50);">Usage:</strong> 0.02–0.04 = card backgrounds · 0.06–0.08 = borders · 0.10–0.15 = hover borders · 0.20–0.30 = placeholder text · 0.40–0.50 = secondary text
+    </p>
+
+    <!-- Blue Opacity Scale -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Blue Opacity Scale (for borders, backgrounds, glows)</h4>
+    <div class="opacity-row mb-48">
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.04);"></div><div class="val">0.04</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.08);"></div><div class="val">0.08</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.10);"></div><div class="val">0.10</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.15);"></div><div class="val">0.15</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.20);"></div><div class="val">0.20</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.30);"></div><div class="val">0.30</div></div>
+      <div class="opacity-chip"><div class="box" style="background:rgba(37,99,235,0.50);"></div><div class="val">0.50</div></div>
+    </div>
+
+    <!-- Gradients -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Key Gradients</h4>
+    <div class="grid-2 mb-32">
+      <div>
+        <div class="gradient-swatch mb-8" style="background:linear-gradient(to bottom, rgba(37,99,235,0.08), transparent);"></div>
+        <div style="font-size:12px; color:var(--text-40);">Featured Card — <code>from-blue-600/[0.08] to-transparent</code></div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:linear-gradient(to right, transparent, rgba(59,130,246,0.6), transparent);"></div>
+        <div style="font-size:12px; color:var(--text-40);">Divider Line — <code>from-transparent via-blue-500/60 to-transparent</code></div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:linear-gradient(to right, #1D4ED8, #3B82F6, #60A5FA);"></div>
+        <div style="font-size:12px; color:var(--text-40);">Scroll Progress — <code>from-blue-700 via-blue-500 to-blue-400</code></div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:radial-gradient(ellipse at center, transparent 30%, rgba(5,5,16,0.7) 85%, #050510 100%);"></div>
+        <div style="font-size:12px; color:var(--text-40);">Vignette — <code>radial-gradient(...transparent 30%, bg 85%)</code></div>
+      </div>
+    </div>
+
+    <!-- Nebula Gradients -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Nebula Gradients (Space Background)</h4>
+    <div class="grid-4 mb-32">
+      <div>
+        <div class="gradient-swatch mb-8" style="background:radial-gradient(circle, rgba(37,99,235,0.5) 0%, rgba(30,58,95,0.3) 50%, transparent 70%); filter:blur(20px);"></div>
+        <div style="font-size:11px; color:var(--text-30);">Nebula 1 — Blue core</div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:radial-gradient(circle, rgba(88,28,235,0.4) 0%, rgba(30,64,175,0.2) 50%, transparent 70%); filter:blur(20px);"></div>
+        <div style="font-size:11px; color:var(--text-30);">Nebula 2 — Violet</div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(37,99,235,0.15) 50%, transparent 70%); filter:blur(20px);"></div>
+        <div style="font-size:11px; color:var(--text-30);">Nebula 3 — Cyan</div>
+      </div>
+      <div>
+        <div class="gradient-swatch mb-8" style="background:radial-gradient(circle, rgba(59,130,246,0.4) 0%, rgba(37,99,235,0.15) 50%, transparent 70%); filter:blur(20px);"></div>
+        <div style="font-size:11px; color:var(--text-30);">Nebula 4 — Sky</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 02 — TYPOGRAPHY                                                -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">02</div>
+      <h2>Typography</h2>
+      <p>Inter is the sole typeface. Light weight for headings, regular/medium for body. Tight tracking on display text.</p>
+    </div>
+
+    <div class="type-showcase">
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Hero Title</div>
+          <div class="spec">clamp(32px, 6vw, 68px)<br>weight: 300 · tracking: -0.03em<br>line-height: 1.08</div>
+        </div>
+        <div style="font-size:clamp(32px,6vw,68px); font-weight:300; letter-spacing:-0.03em; line-height:1.08;">
+          Digital Infrastructure
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Section Heading</div>
+          <div class="spec">clamp(24px, 3.5vw, 48px)<br>weight: 300 · tracking: -0.02em</div>
+        </div>
+        <div style="font-size:clamp(24px,3.5vw,48px); font-weight:300; letter-spacing:-0.02em;">
+          The Team
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Card Title</div>
+          <div class="spec">18px (text-lg)<br>weight: 500</div>
+        </div>
+        <div style="font-size:18px; font-weight:500;">
+          Business Dashboard & BI
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Body Text</div>
+          <div class="spec">14px (text-sm)<br>weight: 400 · line-height: 1.625<br>color: white/50</div>
+        </div>
+        <div style="font-size:14px; font-weight:400; line-height:1.625; color:var(--text-50);">
+          We deliver a complete digital infrastructure — from operations management to cybersecurity — in a single, integrated package built for European manufacturers.
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Label / Badge</div>
+          <div class="spec">11-12px (text-xs)<br>weight: 500-600<br>tracking: 0.05-0.2em · uppercase</div>
+        </div>
+        <div style="font-size:12px; font-weight:500; letter-spacing:0.05em; color:var(--text-50);">
+          Our Services
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Caption / Micro</div>
+          <div class="spec">10-11px<br>weight: 400-500<br>color: white/20 – white/40</div>
+        </div>
+        <div style="font-size:10px; font-weight:500; color:var(--text-20);">
+          We respect your privacy. Your information will never be shared.
+        </div>
+      </div>
+    </div>
+
+    <!-- Weight Scale -->
+    <h4 class="mb-16 mt-32" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Weight Scale</h4>
+    <table class="token-table">
+      <thead>
+        <tr><th>Weight</th><th>CSS Value</th><th>Tailwind</th><th>Usage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:300; font-size:18px;">Light</td>
+          <td><code>300</code></td>
+          <td><code>font-light</code></td>
+          <td style="color:var(--text-40);">All display headings (hero, section titles)</td>
+        </tr>
+        <tr>
+          <td style="font-weight:400; font-size:18px;">Regular</td>
+          <td><code>400</code></td>
+          <td><code>font-normal</code></td>
+          <td style="color:var(--text-40);">Body text, descriptions, cinematic intro</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500; font-size:18px;">Medium</td>
+          <td><code>500</code></td>
+          <td><code>font-medium</code></td>
+          <td style="color:var(--text-40);">Card titles, labels, badges, nav items</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; font-size:18px;">Semibold</td>
+          <td><code>600</code></td>
+          <td><code>font-semibold</code></td>
+          <td style="color:var(--text-40);">Buttons, CTAs, strong emphasis</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700; font-size:18px;">Bold</td>
+          <td><code>700</code></td>
+          <td><code>font-bold</code></td>
+          <td style="color:var(--text-40);">Sub-headings within sections (h3)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 03 — ANIMATION                                                 -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">03</div>
+      <h2>Animation</h2>
+      <p>Signature cubic-bezier easing with staggered reveals. Ambient CSS-only for performance, Framer Motion for interaction.</p>
+    </div>
+
+    <!-- Master Easing -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Signature Easing Curve</h4>
+    <div class="grid-2 mb-48">
+      <div class="card">
+        <h4 style="color:var(--blue-400); font-family:monospace;">cubic-bezier(0.16, 1, 0.3, 1)</h4>
+        <p class="mt-32">Used for ALL content entrance animations. Fast start with a smooth, decelerating finish. Creates a premium, fluid feel. In Framer Motion: <code>ease: [0.16, 1, 0.3, 1]</code></p>
+      </div>
+      <div class="easing-visual">
+        <svg viewBox="0 0 200 200">
+          <line x1="0" y1="200" x2="200" y2="0" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <path d="M 0 200 C 32 0, 60 0, 200 0" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+          <circle cx="32" cy="0" r="3" fill="#60A5FA"/>
+          <circle cx="60" cy="0" r="3" fill="#60A5FA"/>
+          <text x="10" y="190" fill="rgba(255,255,255,0.3)" font-size="10" font-family="monospace">0,0</text>
+          <text x="165" y="15" fill="rgba(255,255,255,0.3)" font-size="10" font-family="monospace">1,1</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Animation Patterns -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Core Motion Patterns (Framer Motion)</h4>
+
+    <div class="code-block mb-24">
+      <div class="code-block-header">
+        <span class="lang">TSX</span>
+        Fade + Slide Up — Most common entrance animation
+      </div>
+      <pre><span class="cmt">// Standard section/card reveal</span>
+initial={{ <span class="prop">opacity</span>: <span class="num">0</span>, <span class="prop">y</span>: <span class="num">30</span> }}
+animate={isInView ? { <span class="prop">opacity</span>: <span class="num">1</span>, <span class="prop">y</span>: <span class="num">0</span> } : {}}
+transition={{ <span class="prop">duration</span>: <span class="num">0.8</span>, <span class="prop">delay</span>: <span class="num">0.2</span>, <span class="prop">ease</span>: [<span class="num">0.16</span>, <span class="num">1</span>, <span class="num">0.3</span>, <span class="num">1</span>] }}
+
+<span class="cmt">// Stagger children — add i * 0.15 to delay</span>
+transition={{ <span class="prop">duration</span>: <span class="num">0.8</span>, <span class="prop">delay</span>: <span class="num">0.4</span> + i * <span class="num">0.15</span>, <span class="prop">ease</span>: [<span class="num">0.16</span>, <span class="num">1</span>, <span class="num">0.3</span>, <span class="num">1</span>] }}</pre>
+    </div>
+
+    <div class="code-block mb-24">
+      <div class="code-block-header">
+        <span class="lang">TSX</span>
+        Blur + Fade Reveal — Hero word-by-word
+      </div>
+      <pre>initial={{ <span class="prop">opacity</span>: <span class="num">0</span>, <span class="prop">y</span>: <span class="num">25</span>, <span class="prop">filter</span>: <span class="str">"blur(8px)"</span> }}
+animate={{ <span class="prop">opacity</span>: <span class="num">1</span>, <span class="prop">y</span>: <span class="num">0</span>, <span class="prop">filter</span>: <span class="str">"blur(0px)"</span> }}
+transition={{ <span class="prop">duration</span>: <span class="num">0.7</span>, <span class="prop">delay</span>: i * <span class="num">0.12</span>, <span class="prop">ease</span>: [<span class="num">0.16</span>, <span class="num">1</span>, <span class="num">0.3</span>, <span class="num">1</span>] }}</pre>
+    </div>
+
+    <div class="code-block mb-24">
+      <div class="code-block-header">
+        <span class="lang">TSX</span>
+        Button Interactions
+      </div>
+      <pre><span class="cmt">// Primary button</span>
+whileHover={{ <span class="prop">scale</span>: <span class="num">1.02</span>, <span class="prop">boxShadow</span>: <span class="str">"0 0 30px rgba(37,99,235,0.3)"</span> }}
+whileTap={{ <span class="prop">scale</span>: <span class="num">0.98</span> }}
+
+<span class="cmt">// Card hover lift</span>
+whileHover={{ <span class="prop">y</span>: <span class="num">-4</span> }}   <span class="cmt">// standard card</span>
+whileHover={{ <span class="prop">y</span>: <span class="num">-8</span> }}   <span class="cmt">// pricing card (larger lift)</span>
+
+<span class="cmt">// Spring physics (nav indicator)</span>
+transition={{ <span class="prop">type</span>: <span class="str">"spring"</span>, <span class="prop">stiffness</span>: <span class="num">300</span>, <span class="prop">damping</span>: <span class="num">30</span> }}</pre>
+    </div>
+
+    <!-- Duration Scale -->
+    <h4 class="mb-16 mt-48" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Duration Scale</h4>
+    <table class="token-table">
+      <thead><tr><th>Duration</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>0.3s</code></td><td style="color:var(--text-40);">Quick UI feedback — color, opacity, border transitions (CSS)</td></tr>
+        <tr><td><code>0.4s</code></td><td style="color:var(--text-40);">Accordion open/close, page entrance fade</td></tr>
+        <tr><td><code>0.5s</code></td><td style="color:var(--text-40);">Scene transitions, testimonial slides</td></tr>
+        <tr><td><code>0.6–0.7s</code></td><td style="color:var(--text-40);">Button animations, smaller section reveals, word-by-word</td></tr>
+        <tr><td><code>0.8–0.9s</code></td><td style="color:var(--text-40);">Section heading reveals, card stagger entrances</td></tr>
+        <tr><td><code>1.0–1.5s</code></td><td style="color:var(--text-40);">Dramatic reveals, intro exits</td></tr>
+        <tr><td><code>4–6s</code></td><td style="color:var(--text-40);">CSS keyframe loops — twinkle stars</td></tr>
+        <tr><td><code>12–20s</code></td><td style="color:var(--text-40);">CSS keyframe loops — nebula breathing</td></tr>
+      </tbody>
+    </table>
+
+    <!-- CSS Keyframes -->
+    <h4 class="mb-16 mt-48" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">CSS Keyframes (ambient, GPU-accelerated)</h4>
+    <div class="grid-2">
+      <div class="code-block">
+        <div class="code-block-header"><span class="lang">CSS</span> nebulaPulse</div>
+        <pre><span class="kw">@keyframes</span> <span class="fn">nebulaPulse</span> {
+  <span class="num">0%</span>, <span class="num">100%</span> {
+    <span class="prop">transform</span>: <span class="fn">scale</span>(<span class="num">1</span>);
+    <span class="prop">opacity</span>: <span class="num">0.7</span>;
+  }
+  <span class="num">50%</span> {
+    <span class="prop">transform</span>: <span class="fn">scale</span>(<span class="num">1.25</span>);
+    <span class="prop">opacity</span>: <span class="num">1</span>;
+  }
+}
+<span class="cmt">/* Durations: 12s, 14s, 16s, 20s */</span>
+<span class="cmt">/* Delays: 0s, 3s, 6s, 8s */</span></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span class="lang">CSS</span> twinkle</div>
+        <pre><span class="kw">@keyframes</span> <span class="fn">twinkle</span> {
+  <span class="num">0%</span>, <span class="num">100%</span> {
+    <span class="prop">opacity</span>: <span class="num">1</span>;
+  }
+  <span class="num">50%</span> {
+    <span class="prop">opacity</span>: <span class="num">0.4</span>;
+  }
+}
+<span class="cmt">/* Durations: 4s, 6s */</span>
+<span class="cmt">/* Stars: box-shadow technique */</span></pre>
+      </div>
+    </div>
+
+    <!-- Performance Rule -->
+    <div class="prompt-block mt-32">
+      <h3>Performance Rule</h3>
+      <pre>AMBIENT animations (stars, nebulas, grain) → CSS @keyframes only
+CONTENT animations (reveals, hovers, interactions) → Framer Motion
+CURSOR follower → Direct DOM manipulation via refs (zero React re-renders)
+GPU acceleration → will-change: transform on all animated elements</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 04 — LAYOUT & SPACING                                          -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">04</div>
+      <h2>Layout & Spacing</h2>
+      <p>Consistent vertical rhythm, responsive grids, and a strict z-index hierarchy.</p>
+    </div>
+
+    <!-- Max Widths -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Max Width Scale</h4>
+    <table class="token-table mb-48">
+      <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>max-w-2xl</code></td><td>672px</td><td style="color:var(--text-40);">Small text blocks, CTAs</td></tr>
+        <tr><td><code>max-w-3xl</code></td><td>768px</td><td style="color:var(--text-40);">Medium content containers</td></tr>
+        <tr><td><code>max-w-4xl</code></td><td>896px</td><td style="color:var(--text-40);">Hero content area</td></tr>
+        <tr><td><code>max-w-[1200px]</code></td><td>1200px</td><td style="color:var(--text-40);">Primary section container (most sections)</td></tr>
+        <tr><td><code>max-w-[1400px]</code></td><td>1400px</td><td style="color:var(--text-40);">Wide layouts (pricing grid, 4+ columns)</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Section Pattern -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Section Vertical Rhythm</h4>
+    <div class="code-block mb-48">
+      <div class="code-block-header"><span class="lang">Pattern</span> Every section follows this structure</div>
+      <pre><span class="cmt">/* Standard section wrapper */</span>
+&lt;section <span class="prop">className</span>=<span class="str">"relative bg-transparent py-16 md:py-32"</span>&gt;
+  &lt;div <span class="prop">className</span>=<span class="str">"mx-auto max-w-[1200px] px-4 md:px-6"</span>&gt;
+    <span class="cmt">{/* Section header */}</span>
+    &lt;div <span class="prop">className</span>=<span class="str">"mb-10 text-center md:mb-16"</span>&gt;
+      &lt;h2 <span class="prop">className</span>=<span class="str">"mb-3 text-[clamp(24px,3.5vw,48px)] font-light tracking-[-0.02em] text-white md:mb-4"</span>&gt;
+      &lt;p <span class="prop">className</span>=<span class="str">"text-sm text-white/50 md:text-base"</span>&gt;
+    &lt;/div&gt;
+    <span class="cmt">{/* Section content */}</span>
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+    </div>
+
+    <!-- Grid Patterns -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Responsive Grid Patterns</h4>
+    <table class="token-table mb-48">
+      <thead><tr><th>Pattern</th><th>Columns</th><th>Gap</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>grid-cols-1 → sm:2 → lg:5</code></td><td>1 → 2 → 5</td><td><code>gap-4 md:gap-5</code></td><td style="color:var(--text-40);">Bento services (5 feature columns)</td></tr>
+        <tr><td><code>grid-cols-1 → sm:2 → lg:4</code></td><td>1 → 2 → 4</td><td><code>gap-4 md:gap-5</code></td><td style="color:var(--text-40);">Pricing plans</td></tr>
+        <tr><td><code>grid-cols-1 → sm:2 → lg:3</code></td><td>1 → 2 → 3</td><td><code>gap-4 md:gap-6</code></td><td style="color:var(--text-40);">Team members, features</td></tr>
+        <tr><td><code>grid-cols-2 → md:4</code></td><td>2 → 4</td><td><code>gap-3 md:gap-4</code></td><td style="color:var(--text-40);">Stats, metrics</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Z-Index Stack -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Z-Index Stack</h4>
+    <div class="z-stack">
+      <div class="z-layer" style="background:rgba(37,99,235,0.03);"><span class="z-val">z-[9999]</span><span class="z-name">Cursor Follower</span></div>
+      <div class="z-layer" style="background:rgba(37,99,235,0.03);"><span class="z-val">z-[9998]</span><span class="z-name">Grain Overlay</span></div>
+      <div class="z-layer"><span class="z-val">z-[300]</span><span class="z-name">Cinematic Intro</span></div>
+      <div class="z-layer"><span class="z-val">z-[200]</span><span class="z-name">Scroll Progress Bar</span></div>
+      <div class="z-layer"><span class="z-val">z-[100]</span><span class="z-name">Navbar (fixed)</span></div>
+      <div class="z-layer"><span class="z-val">z-[99]</span><span class="z-name">Mobile Menu Overlay</span></div>
+      <div class="z-layer"><span class="z-val">z-[50]</span><span class="z-name">Page Navigation Dots</span></div>
+      <div class="z-layer"><span class="z-val">z-10</span><span class="z-name">Main Content</span></div>
+      <div class="z-layer"><span class="z-val">z-0</span><span class="z-name">Space Background</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 05 — COMPONENTS                                                -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">05</div>
+      <h2>Components</h2>
+      <p>Glass-morphism cards, pill buttons, and glow effects. All surfaces are semi-transparent over the space background.</p>
+    </div>
+
+    <!-- Card -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Card</h4>
+    <div class="grid-2 mb-48">
+      <div class="component-card">
+        <div class="component-preview">
+          <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); padding:24px; width:100%; max-width:280px; transition:all 0.3s;">
+            <div style="font-size:18px; font-weight:500; margin-bottom:8px;">Card Title</div>
+            <div style="font-size:13px; color:var(--text-40); line-height:1.6;">Description text with secondary color opacity.</div>
+          </div>
+        </div>
+        <div class="component-code">
+rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 md:p-7
+hover:border-white/[0.12] hover:bg-white/[0.04]
+        </div>
+      </div>
+      <div class="component-card">
+        <div class="component-preview">
+          <div style="border-radius:16px; border:1px solid rgba(59,130,246,0.3); background:linear-gradient(to bottom, rgba(37,99,235,0.08), transparent); padding:24px; width:100%; max-width:280px; box-shadow:0 0 60px -20px rgba(37,99,235,0.2);">
+            <div style="position:relative;">
+              <div style="position:absolute; top:-36px; left:50%; transform:translateX(-50%); background:#2563EB; padding:4px 16px; border-radius:9999px; font-size:11px; font-weight:700; white-space:nowrap;">Most Popular</div>
+            </div>
+            <div style="font-size:18px; font-weight:500; margin-bottom:8px;">Featured Card</div>
+            <div style="font-size:13px; color:var(--text-40); line-height:1.6;">Blue glow variant with gradient.</div>
+          </div>
+        </div>
+        <div class="component-code">
+border-blue-500/30 bg-gradient-to-b from-blue-600/[0.08] to-transparent
+shadow-[0_0_60px_-20px_rgba(37,99,235,0.2)]
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Buttons</h4>
+    <div class="grid-2 mb-48">
+      <div class="component-card">
+        <div class="component-preview" style="gap:16px; flex-direction:column;">
+          <button class="btn-primary">Book a Call →</button>
+          <div style="font-size:11px; color:var(--text-30);">Primary — solid blue, hover glow</div>
+        </div>
+        <div class="component-code">
+rounded-full bg-blue-600 py-3 text-sm font-semibold text-white
+hover:bg-blue-500 hover:shadow-[0_0_24px_rgba(37,99,235,0.3)]
+whileHover={{ scale: 1.02 }}  whileTap={{ scale: 0.98 }}
+        </div>
+      </div>
+      <div class="component-card">
+        <div class="component-preview" style="gap:16px; flex-direction:column;">
+          <button class="btn-secondary">Learn More →</button>
+          <div style="font-size:11px; color:var(--text-30);">Secondary — ghost, border hover</div>
+        </div>
+        <div class="component-code">
+rounded-full border border-white/10 text-white
+hover:border-white/25 hover:bg-white/[0.04]
+whileHover={{ scale: 1.02 }}  whileTap={{ scale: 0.98 }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Badge -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Badge / Pill</h4>
+    <div class="component-card mb-48">
+      <div class="component-preview" style="gap:16px;">
+        <span class="hero-badge"><span class="dot"></span> Badge Label</span>
+        <span style="padding:4px 12px; border-radius:9999px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.03); font-size:10px; color:var(--text-40);">Credential Tag</span>
+        <span style="padding:4px 12px; border-radius:9999px; border:1px solid rgba(59,130,246,0.2); background:rgba(37,99,235,0.08); font-size:12px; font-weight:500; color:#60A5FA;">Blue Tag</span>
+      </div>
+      <div class="component-code">
+Hero badge:  rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-white/50
+Credential:  rounded-full border border-white/[0.06] bg-white/[0.03] px-2.5 py-0.5 text-[10px] text-white/45
+Blue pill:   rounded-full border border-blue-500/20 bg-blue-600/[0.08] px-3.5 py-1.5 text-xs font-medium text-blue-400/80
+      </div>
+    </div>
+
+    <!-- Border Radius -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Border Radius Scale</h4>
+    <table class="token-table mb-48">
+      <thead><tr><th>Tailwind</th><th>Value</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>rounded-lg</code></td><td>8px</td><td style="color:var(--text-40);">Icon containers, small elements</td></tr>
+        <tr><td><code>rounded-xl</code></td><td>12px</td><td style="color:var(--text-40);">Form inputs, code blocks</td></tr>
+        <tr><td><code>rounded-2xl</code></td><td>16px</td><td style="color:var(--text-40);">Cards, sections (primary radius)</td></tr>
+        <tr><td><code>rounded-3xl</code></td><td>24px</td><td style="color:var(--text-40);">Large case study cards</td></tr>
+        <tr><td><code>rounded-full</code></td><td>9999px</td><td style="color:var(--text-40);">Buttons, badges, pills, avatars</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Shadow / Glow -->
+    <h4 class="mb-16" style="font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-40);">Shadow / Glow Scale</h4>
+    <table class="token-table">
+      <thead><tr><th>Token</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>shadow-[0_0_24px_rgba(37,99,235,0.3)]</code></td><td style="color:var(--text-40);">Button hover glow (standard)</td></tr>
+        <tr><td><code>shadow-[0_0_30px_rgba(37,99,235,0.3)]</code></td><td style="color:var(--text-40);">CTA button hover glow</td></tr>
+        <tr><td><code>shadow-[0_0_40px_rgba(37,99,235,0.25)]</code></td><td style="color:var(--text-40);">Hero button hover glow (largest)</td></tr>
+        <tr><td><code>shadow-[0_0_60px_-20px_rgba(37,99,235,0.2)]</code></td><td style="color:var(--text-40);">Featured card ambient glow</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 06 — SPECIAL EFFECTS                                           -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">06</div>
+      <h2>Special Effects</h2>
+      <p>The layered atmosphere that makes BlackWolf feel like a command center in space.</p>
+    </div>
+
+    <div class="grid-2 mb-32">
+      <div class="card">
+        <h4 style="color:var(--blue-400);">Space Background</h4>
+        <p class="mb-16">5 layers stacked (bottom to top):</p>
+        <div style="font-size:12px; color:var(--text-40); line-height:2;">
+          1. <strong style="color:var(--text-50);">Base</strong> — Solid #050510<br>
+          2. <strong style="color:var(--text-50);">Gradients</strong> — Two radial ellipses (deep blue tint)<br>
+          3. <strong style="color:var(--text-50);">Grid</strong> — 80×80px blue lines, opacity 0.025<br>
+          4. <strong style="color:var(--text-50);">Nebulas</strong> — 4 blobs, blur 150–200px, CSS breathing<br>
+          5. <strong style="color:var(--text-50);">Stars</strong> — ~100 via box-shadow, CSS twinkle<br>
+          6. <strong style="color:var(--text-50);">Vignette</strong> — Radial gradient darkening edges
+        </div>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--blue-400);">Grain Overlay</h4>
+        <p class="mb-16">Subtle noise texture over everything:</p>
+        <div style="font-size:12px; color:var(--text-40); line-height:2;">
+          <strong style="color:var(--text-50);">Method:</strong> SVG feTurbulence filter<br>
+          <strong style="color:var(--text-50);">Type:</strong> fractalNoise<br>
+          <strong style="color:var(--text-50);">Base frequency:</strong> 0.9<br>
+          <strong style="color:var(--text-50);">Octaves:</strong> 4<br>
+          <strong style="color:var(--text-50);">Opacity:</strong> 0.03 (barely perceptible)<br>
+          <strong style="color:var(--text-50);">Position:</strong> fixed, covers viewport<br>
+          <strong style="color:var(--text-50);">Z-index:</strong> 9998<br>
+          <strong style="color:var(--text-50);">Pointer events:</strong> none
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="color:var(--blue-400);">Cursor Follower</h4>
+        <div style="font-size:12px; color:var(--text-40); line-height:2;">
+          <strong style="color:var(--text-50);">Inner dot:</strong> 8px, blue-600, mix-blend-difference<br>
+          <strong style="color:var(--text-50);">Outer ring:</strong> 32px → 48px on hover, blue-500/60<br>
+          <strong style="color:var(--text-50);">Smoothing:</strong> lerp factor 0.2 (dot), 0.1 (ring)<br>
+          <strong style="color:var(--text-50);">Method:</strong> requestAnimationFrame + refs (zero re-renders)<br>
+          <strong style="color:var(--text-50);">Desktop only:</strong> hidden on touch devices
+        </div>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--blue-400);">Scroll Progress</h4>
+        <div style="font-size:12px; color:var(--text-40); line-height:2;">
+          <strong style="color:var(--text-50);">Height:</strong> 2px, fixed top<br>
+          <strong style="color:var(--text-50);">Color:</strong> gradient blue-700 → blue-500 → blue-400<br>
+          <strong style="color:var(--text-50);">Physics:</strong> spring (stiffness 200, damping 50)<br>
+          <strong style="color:var(--text-50);">Z-index:</strong> 200
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- 07 — SYSTEM PROMPT                                             -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">07</div>
+      <h2>System Prompt</h2>
+      <p>Copy this prompt to replicate the BlackWolf design system in any AI-assisted project. Paste it as a system instruction or context file.</p>
+    </div>
+
+    <div class="prompt-block">
+      <h3>BLACKWOLF DESIGN SYSTEM — AI Replication Prompt</h3>
+      <pre>
+You are building a product for BlackWolf. Follow this design system exactly.
+
+═══════════════════════════════════════════
+IDENTITY
+═══════════════════════════════════════════
+Brand: BlackWolf — Digital Infrastructure for Manufacturing
+Aesthetic: Deep space command center. Dark, premium, cinematic.
+Mood: Futuristic precision meets industrial strength. Clean, not flashy.
+Font: Inter (Google Fonts) — the ONLY typeface.
+
+═══════════════════════════════════════════
+COLORS
+═══════════════════════════════════════════
+Background:       #050510 (near-black with blue undertone)
+Foreground:       #E4E4E7 (zinc-200, primary text)
+Blue 600:         #2563EB (primary action — buttons, CTAs)
+Blue 500:         #3B82F6 (hover states, secondary blue)
+Blue 400:         #60A5FA (accent text, labels, highlights)
+Blue 700:         #1D4ED8 (dark blue, gradient start)
+Blue 800:         #1E40AF (deepest blue)
+Success:          #22C55E (green-500)
+Error:            #EF4444 (red-500)
+Warning:          #F59E0B (amber-500)
+
+WHITE OPACITY SCALE (applied over #050510):
+- 0.02 = card background (bg-white/[0.02])
+- 0.03 = badge/pill background
+- 0.04 = card hover state
+- 0.06 = default border color
+- 0.08 = stronger border
+- 0.10 = badge border, visible line
+- 0.12 = hover border
+- 0.20 = very subtle text (micro captions)
+- 0.30 = placeholder text
+- 0.40 = secondary/tertiary text
+- 0.50 = standard secondary text
+
+BLUE OPACITY SCALE:
+- blue-600/[0.08] = gradient backgrounds, icon containers
+- blue-500/15 = hover border on cards
+- blue-500/20 = icon container border
+- blue-500/30 = featured card border
+- blue-500/60 = cursor ring, check icons
+
+RULE: Never use solid white or opaque backgrounds on cards/containers.
+Everything is semi-transparent, floating over the space background.
+
+═══════════════════════════════════════════
+TYPOGRAPHY
+═══════════════════════════════════════════
+Font: Inter (weights: 300, 400, 500, 600, 700)
+
+HIERARCHY:
+- Hero title:      clamp(32px, 6vw, 68px) / weight 300 / tracking -0.03em / line-height 1.08
+- Section heading:  clamp(24px, 3.5vw, 48px) / weight 300 / tracking -0.02em
+- Card title:       18px (text-lg) / weight 500
+- Body text:        14px (text-sm) / weight 400 / line-height 1.625 / color white/50
+- Label/badge:      11-12px (text-xs) / weight 500-600 / tracking 0.05em+ / uppercase
+- Micro caption:    10-11px / weight 400-500 / color white/20 to white/40
+
+RULES:
+- Headings are ALWAYS font-light (300). Never bold headings.
+- Body text is ALWAYS white/50 or white/40, never full white.
+- Use clamp() for responsive heading sizes.
+- Letters are tightly tracked on display text (negative tracking).
+- Labels and badges use wide tracking + uppercase.
+
+═══════════════════════════════════════════
+ANIMATION
+═══════════════════════════════════════════
+SIGNATURE EASING: cubic-bezier(0.16, 1, 0.3, 1)
+In Framer Motion: ease: [0.16, 1, 0.3, 1]
+Use this for ALL content entrance animations. No exceptions.
+
+PATTERNS:
+1. Fade + Slide Up (most common):
+   initial={{ opacity: 0, y: 30 }}
+   animate={{ opacity: 1, y: 0 }}
+   transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+
+2. Staggered Children (add i * 0.15 to delay):
+   transition={{ duration: 0.8, delay: 0.4 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+
+3. Word-by-word Blur Reveal:
+   initial={{ opacity: 0, y: 25, filter: "blur(8px)" }}
+   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+   transition={{ duration: 0.7, delay: i * 0.12 }}
+
+4. Button Interactions:
+   whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(37,99,235,0.3)" }}
+   whileTap={{ scale: 0.98 }}
+
+5. Card Hover Lift:
+   whileHover={{ y: -4 }}  (standard)
+   whileHover={{ y: -8 }}  (large/featured cards)
+
+DURATIONS:
+- 0.3s = quick CSS feedback (color, opacity)
+- 0.4-0.5s = UI state changes, accordions
+- 0.6-0.9s = content reveals (primary range)
+- 1.0-1.5s = dramatic, slow reveals
+
+AMBIENT (CSS only, no JS):
+- Nebula pulse: @keyframes nebulaPulse { 0%,100%{scale(1);opacity:0.7} 50%{scale(1.25);opacity:1} }
+  Durations: 12s, 14s, 16s, 20s with staggered delays
+- Star twinkle: @keyframes twinkle { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  Durations: 4s, 6s
+
+PERFORMANCE RULES:
+- Ambient animations = CSS @keyframes only (GPU-accelerated)
+- Content animations = Framer Motion
+- Cursor/tracking = Direct DOM manipulation via refs
+- Always add will-change: transform to animated elements
+
+═══════════════════════════════════════════
+LAYOUT
+═══════════════════════════════════════════
+MAX WIDTHS:
+- 1200px for most sections
+- 1400px for wide grids (4+ columns)
+- 896px (max-w-4xl) for hero content
+- 768px (max-w-3xl) for centered text blocks
+
+SECTION PATTERN:
+&lt;section className="relative bg-transparent py-16 md:py-32"&gt;
+  &lt;div className="mx-auto max-w-[1200px] px-4 md:px-6"&gt;
+
+GRIDS: Always responsive (grid-cols-1 → sm:2 → lg:N)
+- 5 columns for feature grids
+- 4 columns for pricing/plans
+- 3 columns for team/cards
+- 2 columns for stats/metrics
+
+SPACING:
+- Section padding: py-16 md:py-32
+- Section header margin: mb-10 md:mb-16
+- Card padding: p-5 md:p-7
+- Grid gap: gap-4 md:gap-5
+
+Z-INDEX STACK (top to bottom):
+9999 = Cursor follower
+9998 = Grain overlay
+300  = Cinematic intro
+200  = Scroll progress bar
+100  = Navbar
+99   = Mobile menu
+50   = Navigation dots
+10   = Main content
+0    = Space background
+
+═══════════════════════════════════════════
+COMPONENTS
+═══════════════════════════════════════════
+CARD (default):
+  rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 md:p-7
+  hover: border-white/[0.12] bg-white/[0.04]
+
+CARD (featured):
+  border-blue-500/30 bg-gradient-to-b from-blue-600/[0.08] to-transparent
+  shadow-[0_0_60px_-20px_rgba(37,99,235,0.2)]
+
+BUTTON (primary):
+  rounded-full bg-blue-600 py-3 text-sm font-semibold text-white
+  hover: bg-blue-500 shadow-[0_0_24px_rgba(37,99,235,0.3)]
+
+BUTTON (secondary/ghost):
+  rounded-full border border-white/10 text-white
+  hover: border-white/25 bg-white/[0.04]
+
+BADGE:
+  rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5
+  text-xs font-medium text-white/50
+
+ICON CONTAINER:
+  flex h-9 w-9 items-center justify-center rounded-lg
+  border border-blue-500/20 bg-blue-600/10
+
+INPUT/SELECT:
+  rounded-xl border border-white/[0.08] bg-white/[0.04]
+  py-3 text-sm text-white placeholder-white/30
+  focus: border-blue-500/50
+
+BORDER RADIUS SCALE:
+  8px (rounded-lg) = icons, small elements
+  12px (rounded-xl) = inputs, code blocks
+  16px (rounded-2xl) = cards (PRIMARY)
+  24px (rounded-3xl) = large containers
+  9999px (rounded-full) = buttons, badges, pills
+
+GLOW SCALE:
+  0 0 24px rgba(37,99,235,0.3) = standard button hover
+  0 0 30px rgba(37,99,235,0.3) = CTA hover
+  0 0 40px rgba(37,99,235,0.25) = hero button hover
+  0 0 60px -20px rgba(37,99,235,0.2) = featured card ambient
+
+═══════════════════════════════════════════
+ATMOSPHERE
+═══════════════════════════════════════════
+SPACE BACKGROUND (5 layers):
+1. Solid #050510
+2. Two radial gradient ellipses (deep navy tints)
+3. 80x80px blue grid lines at opacity 0.025
+4. 4 nebula blobs with blur(150-200px) + breathing animation
+5. ~100 stars via CSS box-shadow + twinkle animation
+6. Radial vignette darkening edges
+
+GRAIN: SVG fractalNoise (freq 0.9, 4 octaves), fixed, opacity 0.03, z-9998
+
+CURSOR: Two-part (dot 8px + ring 32-48px), mix-blend-difference,
+lerp smoothing (0.2 dot, 0.1 ring), desktop only, requestAnimationFrame
+
+SCROLL PROGRESS: 2px bar, gradient blue-700→blue-400, spring physics
+
+═══════════════════════════════════════════
+RULES
+═══════════════════════════════════════════
+1. NEVER use white backgrounds or light themes
+2. NEVER use bold weight on display headings (always font-light 300)
+3. NEVER use full white text for body copy (always white/40 or white/50)
+4. ALL surfaces must be semi-transparent — floating over space background
+5. ALL cards lift on hover (whileHover y: -4)
+6. ALL buttons scale on hover (1.02) and tap (0.98) with blue glow
+7. ALL content entrances use the signature easing [0.16, 1, 0.3, 1]
+8. ALL ambient effects are CSS-only for performance
+9. ALWAYS use responsive clamp() for heading sizes
+10. ALWAYS stagger children animations with delay increments of 0.12-0.15
+      </pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                         -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="container">
+  <div class="divider"></div>
+  <div style="text-align:center; padding:48px 0 80px;">
+    <div style="font-size:12px; font-weight:600; letter-spacing:0.2em; color:var(--text-20); margin-bottom:8px;">BLACKWOLF</div>
+    <div style="font-size:11px; color:var(--text-20);">Design System v1.0 — March 2026</div>
+    <div style="font-size:11px; color:rgba(255,255,255,0.10); margin-top:16px;">Internal use only. All specifications derived from blackwolfsec.io</div>
+  </div>
+</div>
+
+</body>
+</html>

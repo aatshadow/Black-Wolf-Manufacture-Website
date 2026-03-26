@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackWolf — Програма за Дигитализация България 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #050510;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-card-border: rgba(255, 255, 255, 0.08);
+            --blue: #2563EB;
+            --blue-light: #3B82F6;
+            --blue-glow: rgba(37, 99, 235, 0.15);
+            --white: #FFFFFF;
+            --white-80: rgba(255, 255, 255, 0.8);
+            --white-60: rgba(255, 255, 255, 0.6);
+            --white-40: rgba(255, 255, 255, 0.4);
+            --white-20: rgba(255, 255, 255, 0.2);
+            --white-10: rgba(255, 255, 255, 0.1);
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
+        }
+
+        /* ===== PAGE SETUP ===== */
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        .slide {
+            width: 297mm;
+            height: 210mm;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 60px;
+        }
+
+        .slide:last-child {
+            page-break-after: auto;
+        }
+
+        /* ===== DECORATIVE ELEMENTS ===== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--blue-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .corner-line {
+            position: absolute;
+            bottom: 30px;
+            left: 60px;
+            right: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, var(--blue) 0%, transparent 100%);
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 12px;
+            right: 60px;
+            font-size: 10px;
+            color: var(--white-40);
+            letter-spacing: 0.1em;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .slide-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .slide-subtitle {
+            font-size: 14px;
+            color: var(--blue-light);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            color: var(--blue-light);
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        /* ===== CARDS & GRIDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        /* ===== STAT BLOCKS ===== */
+        .stat-value {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--blue-light);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--white-60);
+            line-height: 1.4;
+        }
+
+        /* ===== BULLET LISTS ===== */
+        .bullet-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .bullet-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--white-80);
+            line-height: 1.5;
+        }
+
+        .bullet-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 7px;
+            width: 6px;
+            height: 6px;
+            background: var(--blue-light);
+            border-radius: 50%;
+        }
+
+        /* ===== TAGS ===== */
+        .tag {
+            display: inline-block;
+            background: var(--blue-glow);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: var(--blue-light);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== CHECK LIST ===== */
+        .check-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .check-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 10px;
+            font-size: 13.5px;
+            color: var(--white-80);
+            line-height: 1.5;
+        }
+
+        .check-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #22C55E;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* ===== TIMELINE ===== */
+        .timeline-step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+            margin: 0 auto 12px;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 12px;
+            color: var(--white-60);
+            line-height: 1.5;
+        }
+
+        .timeline-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--blue) 0%, var(--blue-light) 50%, var(--blue) 100%);
+            margin: 0 40px 30px;
+            position: relative;
+            top: -64px;
+            margin-bottom: -28px;
+            opacity: 0.4;
+        }
+
+        /* ===== SPECIFIC SLIDES ===== */
+
+        /* Cover */
+        .cover {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px;
+        }
+
+        .cover .logo {
+            width: 90px;
+            height: auto;
+            margin-bottom: 30px;
+            filter: brightness(1.1);
+        }
+
+        .cover .company-name {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 0.35em;
+            color: var(--white);
+            margin-bottom: 24px;
+        }
+
+        .cover .tagline {
+            font-size: 22px;
+            font-weight: 300;
+            color: var(--white-80);
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        .cover .program {
+            font-size: 14px;
+            color: var(--blue-light);
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .cover .divider {
+            width: 60px;
+            height: 2px;
+            background: var(--blue);
+            margin: 24px auto;
+        }
+
+        /* Contact slide */
+        .contact-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .contact-slide .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 30px;
+        }
+
+        .contact-info {
+            margin-top: 32px;
+        }
+
+        .contact-info .contact-line {
+            font-size: 16px;
+            color: var(--white-80);
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        .contact-info .contact-line a {
+            color: var(--blue-light);
+            text-decoration: none;
+        }
+
+        /* Team cards */
+        .team-card {
+            text-align: center;
+        }
+
+        .team-card .name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .team-card .role {
+            font-size: 12px;
+            color: var(--blue-light);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .team-card .cred {
+            font-size: 11px;
+            color: var(--white-40);
+            line-height: 1.4;
+        }
+
+        /* Service blocks */
+        .service-block .service-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .service-block .service-desc {
+            font-size: 12px;
+            color: var(--white-60);
+            line-height: 1.5;
+        }
+
+        .service-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Metrics */
+        .metric-card .metric-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--blue-light);
+            margin-bottom: 4px;
+        }
+
+        .metric-card .metric-label {
+            font-size: 12px;
+            color: var(--white-60);
+            line-height: 1.4;
+        }
+
+        /* Why blocks */
+        .why-block .why-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .why-block .why-desc {
+            font-size: 12.5px;
+            color: var(--white-60);
+            line-height: 1.5;
+        }
+
+        .why-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--blue);
+            opacity: 0.4;
+            margin-bottom: 8px;
+        }
+
+        /* Compliance grid */
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 40px;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ===== SCREEN PREVIEW ===== */
+        @media screen {
+            body {
+                background: #1a1a2e;
+                padding: 20px;
+            }
+
+            .slide {
+                margin: 20px auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                border-radius: 4px;
+            }
+        }
+
+        @media print {
+            body {
+                background: none;
+            }
+
+            .slide {
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== SLIDE 1: COVER ==================== -->
+    <div class="slide cover">
+        <img src="../public/img/logo.png" alt="BlackWolf" class="logo">
+        <div class="company-name">BLACKWOLF</div>
+        <div class="divider"></div>
+        <div class="tagline">Цифрова Инфраструктура за Производство</div>
+        <div class="program">Програма за Дигитализация — България 2026</div>
+    </div>
+
+    <!-- ==================== SLIDE 2: THE PROBLEM ==================== -->
+    <div class="slide">
+        <div class="section-label">Контекст</div>
+        <div class="slide-title">Предизвикателството</div>
+        <div class="slide-subtitle">Защо българската индустрия губи конкурентоспособност</div>
+
+        <div class="slide-content">
+            <div class="grid-2" style="margin-bottom: 36px;">
+                <div class="card" style="text-align: center;">
+                    <div class="stat-value">73%</div>
+                    <div class="stat-label">от производствените компании в България<br>все още работят с Excel таблици</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="stat-value">€2.4M</div>
+                    <div class="stat-label">средни годишни загуби от неефективни<br>процеси на средно предприятие</div>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 10px;">Ръчни процеси</div>
+                    <div style="font-size: 12.5px; color: var(--white-60); line-height: 1.5;">Поръчки, фактури и инвентар се управляват ръчно. Грешките водят до забавяния и загуби.</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 10px;">Разпокъсани системи</div>
+                    <div style="font-size: 12.5px; color: var(--white-60); line-height: 1.5;">Данните живеят в различни файлове и приложения. Няма единна картина за бизнеса.</div>
+                </div>
+                <div class="card">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 10px;">Нулева киберсигурност</div>
+                    <div style="font-size: 12.5px; color: var(--white-60); line-height: 1.5;">Без защита на данни, без мониторинг, без план при инцидент. Огромен риск за бизнеса.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">02 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 3: WHO WE ARE ==================== -->
+    <div class="slide">
+        <div class="section-label">За нас</div>
+        <div class="slide-title">Кои сме ние</div>
+        <div class="slide-subtitle">Технологичен партньор с глобален опит</div>
+
+        <div class="slide-content">
+            <div class="card" style="margin-bottom: 28px;">
+                <p style="font-size: 14px; color: var(--white-80); line-height: 1.7;">
+                    BlackWolf е технологична компания, специализирана в изграждането на цялостна цифрова инфраструктура за производствени предприятия. Комбинираме опит от водещи световни технологични компании с дълбоко разбиране на българския пазар.
+                </p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card team-card">
+                    <div class="name">Alex Gutiérrez</div>
+                    <div class="role">CEO & Co-Founder</div>
+                    <div class="cred">Бивш инженер в проекти на NASA.<br>Стратегия и продуктово развитие.</div>
+                </div>
+                <div class="card team-card">
+                    <div class="name">Alejandro Silvestre</div>
+                    <div class="role">CTO & Co-Founder</div>
+                    <div class="cred">Бивш инженер в Instagram и Uber Eats.<br>Системна архитектура и AI.</div>
+                </div>
+                <div class="card team-card">
+                    <div class="name">Zlatina Valcheva</div>
+                    <div class="role">Head of Business Development</div>
+                    <div class="cred">Развитие на бизнес в България.<br>Връзка между клиент и екип.</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 10px; justify-content: center;">
+                <span class="tag">NASA</span>
+                <span class="tag">Instagram</span>
+                <span class="tag">Uber Eats</span>
+                <span class="tag">AI & Machine Learning</span>
+                <span class="tag">Enterprise Architecture</span>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">03 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 4: WHAT WE DELIVER ==================== -->
+    <div class="slide">
+        <div class="section-label">Решения</div>
+        <div class="slide-title">Какво предлагаме</div>
+        <div class="slide-subtitle">Пълен набор от дигитални услуги за производството</div>
+
+        <div class="slide-content">
+            <div class="grid-5">
+                <div class="card service-block">
+                    <span class="service-icon">&#9881;</span>
+                    <div class="service-title">CRM Система</div>
+                    <div class="service-desc">Управление на клиенти, оферти и продажби. Пълна видимост на търговския процес от първия контакт до сделката.</div>
+                </div>
+                <div class="card service-block">
+                    <span class="service-icon">&#9878;</span>
+                    <div class="service-title">ERP Система</div>
+                    <div class="service-desc">Планиране на ресурси, инвентар, поръчки и производство. Единна система за целия бизнес.</div>
+                </div>
+                <div class="card service-block">
+                    <span class="service-icon">&#9783;</span>
+                    <div class="service-title">BI & Анализи</div>
+                    <div class="service-desc">Табла за управление в реално време. Данни от всички системи на едно място за бързи решения.</div>
+                </div>
+                <div class="card service-block">
+                    <span class="service-icon">&#9741;</span>
+                    <div class="service-title">Уеб & eCommerce</div>
+                    <div class="service-desc">Корпоративни сайтове и онлайн магазини. Модерен дизайн, SEO оптимизация, мобилна версия.</div>
+                </div>
+                <div class="card service-block">
+                    <span class="service-icon">&#9888;</span>
+                    <div class="service-title">Киберсигурност SOC</div>
+                    <div class="service-desc">24/7 мониторинг, защита на данни, управление на уязвимости и план за реакция при инциденти.</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 24px; text-align: center; padding: 16px 24px;">
+                <p style="font-size: 13px; color: var(--white-60);">
+                    Всички решения са интегрирани в единна платформа, проектирана специално за производствения сектор. Поддържаме внедряване, обучение и техническа поддръжка.
+                </p>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">04 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 5: PROCESS ==================== -->
+    <div class="slide">
+        <div class="section-label">Методология</div>
+        <div class="slide-title">Как работим — 5 седмици</div>
+        <div class="slide-subtitle">Бързо и структурирано внедряване</div>
+
+        <div class="slide-content" style="justify-content: center;">
+            <div class="grid-5" style="margin-bottom: 0;">
+                <div class="timeline-step">
+                    <div class="step-number">1</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">2</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">3</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">4</div>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">5</div>
+                </div>
+            </div>
+
+            <div class="timeline-line"></div>
+
+            <div class="grid-5">
+                <div class="card" style="text-align: center;">
+                    <div class="step-title">Анализ</div>
+                    <div class="step-desc">Седмица 1<br><br>Одит на текущите процеси. Идентифициране на пропуски и възможности за автоматизация.</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="step-title">Архитектура</div>
+                    <div class="step-desc">Седмица 2<br><br>Проектиране на системите. Избор на технологии и интеграции. Технически план.</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="step-title">Разработка</div>
+                    <div class="step-desc">Седмица 3<br><br>Изграждане и конфигуриране на всички системи. Миграция на данни.</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="step-title">Внедряване</div>
+                    <div class="step-desc">Седмица 4<br><br>Деплойване, тестване и обучение на екипа. Документация.</div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="step-title">Оптимизация</div>
+                    <div class="step-desc">Седмица 5<br><br>Фина настройка, мониторинг на резултатите и подготовка за мащабиране.</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 28px;">
+                <span class="tag">Agile методология</span>
+                <span class="tag" style="margin-left: 8px;">Седмични отчети</span>
+                <span class="tag" style="margin-left: 8px;">Пълна прозрачност</span>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">05 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 6: RESULTS ==================== -->
+    <div class="slide">
+        <div class="section-label">Резултати</div>
+        <div class="slide-title">Доказани Резултати</div>
+        <div class="slide-subtitle">Реални данни от реализирани проекти</div>
+
+        <div class="slide-content">
+            <div class="grid-2" style="gap: 30px;">
+                <div class="card">
+                    <div style="font-size: 11px; color: var(--blue-light); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px;">Kingly — Производство</div>
+                    <div class="grid-2" style="gap: 16px;">
+                        <div class="metric-card">
+                            <div class="metric-value">+85%</div>
+                            <div class="metric-label">Ефективност на процесите</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">-60%</div>
+                            <div class="metric-label">Време за обработка</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">3x</div>
+                            <div class="metric-label">Скорост на отчетност</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">100%</div>
+                            <div class="metric-label">Цифрова интеграция</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size: 11px; color: var(--blue-light); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px;">FBA Pro Academy — eCommerce</div>
+                    <div class="grid-2" style="gap: 16px;">
+                        <div class="metric-card">
+                            <div class="metric-value">+240%</div>
+                            <div class="metric-label">Ръст на онлайн продажбите</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">-45%</div>
+                            <div class="metric-label">Разходи за маркетинг</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">2x</div>
+                            <div class="metric-label">Конверсия от сайт</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">99.9%</div>
+                            <div class="metric-label">Uptime на системите</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 28px; text-align: center; padding: 20px; border-color: rgba(37, 99, 235, 0.2); background: var(--blue-glow);">
+                <div style="font-size: 20px; font-weight: 700; color: var(--white);">Над 80% подобрение</div>
+                <div style="font-size: 13px; color: var(--white-60); margin-top: 6px;">в оперативната ефективност при всички наши клиенти</div>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">06 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 7: PROGRAM COMPLIANCE ==================== -->
+    <div class="slide">
+        <div class="section-label">Програма</div>
+        <div class="slide-title">Съответствие с Програмата за Дигитализация</div>
+        <div class="slide-subtitle">Покриваме всички допустими категории</div>
+
+        <div class="slide-content">
+            <div class="grid-2" style="gap: 40px;">
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--blue-light); margin-bottom: 16px; letter-spacing: 0.05em;">ДОПУСТИМИ ДЕЙНОСТИ</div>
+                    <ul class="check-list">
+                        <li>CRM система за управление на клиенти и продажби</li>
+                        <li>ERP система за управление на ресурсите</li>
+                        <li>Бизнес анализи и управленски табла (BI)</li>
+                        <li>Корпоративен уебсайт с онлайн каталог</li>
+                        <li>Платформа за електронна търговия (eCommerce)</li>
+                        <li>Решения за киберсигурност (SOC)</li>
+                        <li>Обучение на персонал за работа с ИКТ</li>
+                        <li>Интеграция между съществуващи системи</li>
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--blue-light); margin-bottom: 16px; letter-spacing: 0.05em;">ДОКУМЕНТАЦИЯ</div>
+                    <ul class="check-list">
+                        <li>Подготовка на пълното проектно предложение</li>
+                        <li>Бюджетна обосновка за всяка позиция</li>
+                        <li>Технически спецификации и план за изпълнение</li>
+                        <li>Междинни и финални технически отчети</li>
+                        <li>Финансова отчетност по изискванията</li>
+                        <li>Доказателства за изпълнение и резултати</li>
+                    </ul>
+
+                    <div class="card" style="margin-top: 20px; border-color: rgba(37, 99, 235, 0.3); background: var(--blue-glow); padding: 16px 20px;">
+                        <p style="font-size: 13px; color: var(--white); font-weight: 500; line-height: 1.6;">
+                            Поемаме цялата документация и отчетност по програмата — от кандидатстването до финалния отчет.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">07 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 8: WHY BLACKWOLF ==================== -->
+    <div class="slide">
+        <div class="section-label">Предимства</div>
+        <div class="slide-title">Защо BlackWolf</div>
+        <div class="slide-subtitle">Четири причини да ни изберете</div>
+
+        <div class="slide-content">
+            <div class="grid-4">
+                <div class="card why-block">
+                    <div class="why-number">01</div>
+                    <div class="why-title">Всичко на едно място</div>
+                    <div class="why-desc">CRM, ERP, BI, уебсайт, eCommerce и киберсигурност от един екип. Без координация между множество доставчици.</div>
+                </div>
+                <div class="card why-block">
+                    <div class="why-number">02</div>
+                    <div class="why-title">Бързина</div>
+                    <div class="why-desc">Пълно внедряване за 5 седмици. Структуриран процес, доказан при множество проекти. Без забавяния.</div>
+                </div>
+                <div class="card why-block">
+                    <div class="why-number">03</div>
+                    <div class="why-title">Фокус върху производството</div>
+                    <div class="why-desc">Познаваме спецификите на производствения сектор. Решенията ни са адаптирани за фабрики, а не за офиси.</div>
+                </div>
+                <div class="card why-block">
+                    <div class="why-number">04</div>
+                    <div class="why-title">AI-Native подход</div>
+                    <div class="why-desc">Изкуственият интелект е вграден във всяко решение. Автоматизация, прогнозни анализи и умни препоръки.</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 28px; text-align: center; padding: 24px;">
+                <p style="font-size: 15px; color: var(--white-80); line-height: 1.7;">
+                    Не просто доставяме софтуер — изграждаме <span style="color: var(--white); font-weight: 600;">цифровата основа</span>, върху която вашият бизнес ще расте следващите 10 години.
+                </p>
+            </div>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">08 / 09</div>
+    </div>
+
+    <!-- ==================== SLIDE 9: CONTACT ==================== -->
+    <div class="slide contact-slide">
+        <img src="../public/img/logo.png" alt="BlackWolf" class="logo">
+        <div style="font-size: 36px; font-weight: 700; color: var(--white); letter-spacing: 0.2em; margin-bottom: 12px;">BLACKWOLF</div>
+        <div style="width: 50px; height: 2px; background: var(--blue); margin: 0 auto 28px;"></div>
+        <div style="font-size: 18px; color: var(--white-80); font-weight: 300; max-width: 500px; line-height: 1.6;">
+            Свържете се с нас за безплатна консултация
+        </div>
+
+        <div class="contact-info">
+            <div class="contact-line">
+                <a href="mailto:info@blackwolf.agency">info@blackwolf.agency</a>
+            </div>
+            <div class="contact-line">
+                <a href="https://blackwolf.agency">blackwolf.agency</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 48px; max-width: 460px;">
+            <p style="font-size: 13px; color: var(--white-40); line-height: 1.7;">
+                Вашият технологичен партньор за Програмата за Дигитализация на българската индустрия. Готови сме да започнем.
+            </p>
+        </div>
+
+        <div class="corner-line"></div>
+        <div class="page-number">09 / 09</div>
+    </div>
+
+</body>
+</html>
