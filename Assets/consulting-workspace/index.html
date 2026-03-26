@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Wolf — Business Strategy Workspace</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --bg-card-hover: #22222f;
+            --border: #2a2a3a;
+            --border-active: #6c5ce7;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+            --accent: #6c5ce7;
+            --accent-glow: rgba(108, 92, 231, 0.3);
+            --green: #00d68f;
+            --green-bg: rgba(0, 214, 143, 0.1);
+            --orange: #f5a623;
+            --orange-bg: rgba(245, 166, 35, 0.1);
+            --red: #ff6b6b;
+            --red-bg: rgba(255, 107, 107, 0.1);
+            --blue: #4fc3f7;
+            --blue-bg: rgba(79, 195, 247, 0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 32px; border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary); position: sticky; top: 0; z-index: 100;
+        }
+        .topbar-logo { display: flex; align-items: center; gap: 12px; }
+        .topbar-logo .wolf-icon {
+            width: 36px; height: 36px; background: var(--accent); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .topbar-logo h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+        .topbar-logo h1 span { color: var(--accent); }
+        .topbar-subtitle { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+        .topbar-status { display: flex; align-items: center; gap: 16px; }
+        .status-pill {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: var(--orange-bg); color: var(--orange);
+            border: 1px solid rgba(245, 166, 35, 0.2);
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--orange);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .lang-switcher {
+            display: flex; gap: 3px; background: var(--bg-primary);
+            border-radius: 8px; padding: 3px; border: 1px solid var(--border);
+        }
+        .lang-btn {
+            padding: 5px 10px !important; font-size: 11px !important; border-radius: 5px;
+            cursor: pointer; background: transparent; color: var(--text-secondary);
+            border: none; font-family: 'Inter', sans-serif; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover { color: var(--text-primary); }
+        .lang-btn.active { background: var(--accent) !important; color: white !important; }
+        .main-layout { display: flex; min-height: calc(100vh - 65px); }
+        .sidebar {
+            width: 280px; background: var(--bg-secondary);
+            border-right: 1px solid var(--border); padding: 24px 0; flex-shrink: 0;
+        }
+        .sidebar-section { margin-bottom: 28px; }
+        .sidebar-section-title {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+            color: var(--text-muted); padding: 0 20px; margin-bottom: 8px;
+        }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+            cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent;
+            font-size: 14px; color: var(--text-secondary);
+        }
+        .sidebar-item:hover { background: var(--bg-card); color: var(--text-primary); }
+        .sidebar-item.active {
+            background: rgba(108,92,231,0.08); border-left-color: var(--accent);
+            color: var(--text-primary);
+        }
+        .sidebar-item .icon { width: 20px; text-align: center; font-size: 16px; }
+        .sidebar-item .badge {
+            margin-left: auto; background: var(--accent); color: white;
+            font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700;
+        }
+        .sidebar-item .badge.pending { background: var(--orange-bg); color: var(--orange); }
+        .sidebar-item .badge.done { background: var(--green-bg); color: var(--green); }
+        .content { flex: 1; padding: 32px; max-width: 1200px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .dashboard-header { margin-bottom: 32px; }
+        .dashboard-header h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .dashboard-header p { color: var(--text-secondary); font-size: 15px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+        .metric-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; transition: all 0.3s;
+        }
+        .metric-card:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .metric-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .metric-value { font-size: 32px; font-weight: 800; }
+        .metric-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .phase-tracker {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 28px; margin-bottom: 32px;
+        }
+        .phase-tracker h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+        .phases { display: flex; gap: 0; position: relative; }
+        .phase { flex: 1; text-align: center; position: relative; padding: 16px 8px; }
+        .phase-number {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-secondary);
+            border: 2px solid var(--border); display: flex; align-items: center;
+            justify-content: center; margin: 0 auto 10px; font-weight: 700;
+            font-size: 14px; position: relative; z-index: 2; transition: all 0.3s;
+        }
+        .phase.active .phase-number { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .phase.completed .phase-number { background: var(--green); border-color: var(--green); }
+        .phase-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .phase.active .phase-label { color: var(--accent); }
+        .phase.completed .phase-label { color: var(--green); }
+        .phase-desc { font-size: 11px; color: var(--text-muted); }
+        .phase-line { position: absolute; top: 36px; left: 50%; width: 100%; height: 2px; background: var(--border); z-index: 1; }
+        .phase:last-child .phase-line { display: none; }
+        .phase.completed .phase-line { background: var(--green); }
+        .cards-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-bottom: 32px; }
+        .info-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 24px; transition: all 0.3s;
+        }
+        .info-card:hover { border-color: var(--border-active); transform: translateY(-2px); }
+        .info-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .info-card ul { list-style: none; padding: 0; }
+        .info-card li {
+            padding: 6px 0; font-size: 13px; color: var(--text-secondary);
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+        .info-card li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+        .questions-section { margin-top: 24px; }
+        .questions-section h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .question-block {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: all 0.3s;
+        }
+        .question-block.answered { border-color: var(--green); border-left: 3px solid var(--green); }
+        .question-block.current { border-color: var(--accent); border-left: 3px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .question-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; cursor: pointer; }
+        .question-number {
+            width: 28px; height: 28px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+            background: var(--bg-secondary); border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .question-block.answered .question-number { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+        .question-block.current .question-number { background: rgba(108,92,231,0.15); border-color: var(--accent); color: var(--accent); }
+        .question-text { font-size: 14px; font-weight: 500; flex: 1; }
+        .question-tag {
+            font-size: 10px; padding: 3px 10px; border-radius: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .tag-mercado { background: var(--blue-bg); color: var(--blue); }
+        .tag-capacidad { background: var(--orange-bg); color: var(--orange); }
+        .tag-ambicion { background: var(--green-bg); color: var(--green); }
+        .tag-producto { background: rgba(168,85,247,0.12); color: #a855f7; }
+        .question-body { display: none; padding: 0 20px 16px 60px; }
+        .question-block.open .question-body { display: block; }
+        .question-body textarea {
+            width: 100%; background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-primary); padding: 12px;
+            font-family: 'Inter', sans-serif; font-size: 13px; resize: vertical;
+            min-height: 80px; outline: none; transition: border-color 0.2s;
+        }
+        .question-body textarea:focus { border-color: var(--accent); }
+        .question-body textarea::placeholder { color: var(--text-muted); }
+        .question-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+        .deliverable-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 24px; margin-bottom: 16px; display: flex; align-items: center;
+            gap: 20px; transition: all 0.3s;
+        }
+        .deliverable-card:hover { border-color: var(--accent); }
+        .deliverable-icon {
+            width: 56px; height: 56px; border-radius: 14px; display: flex;
+            align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+        }
+        .deliverable-info { flex: 1; }
+        .deliverable-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .deliverable-info p { font-size: 13px; color: var(--text-secondary); }
+        .deliverable-status {
+            padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-locked { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border); }
+        .status-in-progress { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(245,166,35,0.2); }
+        .status-ready { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,214,143,0.2); }
+        .asset-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+        .asset-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; text-align: center; transition: all 0.3s;
+        }
+        .asset-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .asset-icon { font-size: 32px; margin-bottom: 12px; }
+        .asset-card h4 { font-size: 14px; margin-bottom: 6px; }
+        .asset-card p { font-size: 12px; color: var(--text-secondary); }
+        .asset-tag {
+            display: inline-block; margin-top: 10px; font-size: 10px; padding: 3px 10px;
+            border-radius: 10px; background: var(--green-bg); color: var(--green); font-weight: 600;
+        }
+        .btn {
+            padding: 10px 20px; border-radius: 8px; border: none; font-family: 'Inter', sans-serif;
+            font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-save { background: var(--green); color: #0a0a0f; }
+        .actions-bar { display: flex; gap: 12px; margin-top: 24px; }
+        .notes-panel {
+            position: fixed; right: -400px; top: 65px; width: 400px;
+            height: calc(100vh - 65px); background: var(--bg-secondary);
+            border-left: 1px solid var(--border); padding: 24px;
+            transition: right 0.3s ease; z-index: 50; overflow-y: auto;
+        }
+        .notes-panel.open { right: 0; }
+        .notes-panel h3 { margin-bottom: 16px; font-size: 16px; }
+        .notes-panel textarea {
+            width: 100%; height: calc(100% - 100px); background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);
+            padding: 16px; font-family: 'Inter', sans-serif; font-size: 13px;
+            resize: none; outline: none;
+        }
+        .notes-panel textarea:focus { border-color: var(--accent); }
+        .tier-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 24px; }
+        .tier-card { text-align: center; }
+        .tier-card .tier-name { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+        .tier-card .tier-price { font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+        .tier-card .tier-price span { font-size: 16px; color: var(--text-muted); }
+        .tier-card .tier-users { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
+        .tier-card ul { border-top: 1px solid var(--border); padding-top: 16px; text-align: left; }
+        .roi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 1024px) {
+            .metrics-grid { grid-template-columns: repeat(2,1fr); }
+            .asset-grid { grid-template-columns: repeat(2,1fr); }
+            .cards-grid { grid-template-columns: 1fr; }
+            .tier-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .content { padding: 20px; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .phases { flex-direction: column; }
+            .phase-line { display: none !important; }
+            .roi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+    <div class="topbar-logo">
+        <div class="wolf-icon">W</div>
+        <div>
+            <h1>BLACK<span>WOLF</span></h1>
+            <div class="topbar-subtitle" data-i18n="subtitle">Business Strategy Workspace</div>
+        </div>
+    </div>
+    <div class="topbar-status">
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            <span data-i18n="status_phase">Fase 3 — Oferta Irresistible</span>
+        </div>
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="setLang('es')" data-lang="es">ES</button>
+            <button class="lang-btn" onclick="setLang('en')" data-lang="en">EN</button>
+        </div>
+        <button class="btn btn-secondary" onclick="toggleNotes()" data-i18n="btn_notes">Notas</button>
+    </div>
+</div>
+
+<div class="main-layout">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="nav_strategy">Estrategia</div>
+        <div class="sidebar-item active" onclick="showPage('dashboard', this)">
+            <span class="icon">&#9673;</span> <span data-i18n="nav_dashboard">Dashboard</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('discovery', this)">
+            <span class="icon">&#10067;</span> <span data-i18n="nav_discovery">Discovery</span>
+            <span class="badge">18</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('deliverables', this)">
+            <span class="icon">&#9997;</span> <span data-i18n="nav_deliverables">Entregables</span>
+            <span class="badge pending">6</span>
+        </div>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="nav_assets_section">Activos</div>
+        <div class="sidebar-item" onclick="showPage('assets', this)">
+            <span class="icon">&#9881;</span> <span data-i18n="nav_tech_assets">Tech Assets</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('team', this)">
+            <span class="icon">&#9734;</span> <span data-i18n="nav_team">Equipo</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('roadmap', this)">
+            <span class="icon">&#128197;</span> <span data-i18n="nav_roadmap">Roadmap Operativo</span>
+            <span class="badge" style="background:var(--accent);">NEW</span>
+        </div>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="nav_development">Desarrollo</div>
+        <div class="sidebar-item" onclick="showPage('niche', this)">
+            <span class="icon">&#127919;</span> <span data-i18n="nav_niche">Nicho</span>
+            <span class="badge done" data-i18n="badge_defined">Definido</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('avatar', this)">
+            <span class="icon">&#9823;</span> <span data-i18n="nav_avatar">Avatar</span>
+            <span class="badge done" data-i18n="badge_defined2">Definido</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('offer', this)">
+            <span class="icon">&#9733;</span> <span data-i18n="nav_offer">Oferta</span>
+            <span class="badge done" data-i18n="badge_defined3">Definida</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('analysis', this)">
+            <span class="icon">&#128202;</span> <span data-i18n="nav_analysis">Analisis</span>
+            <span class="badge done" data-i18n="badge_done_a">Completo</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('gtm', this)">
+            <span class="icon">&#128640;</span> <span data-i18n="nav_gtm">Go-To-Market</span>
+            <span class="badge done" data-i18n="badge_done_g">Completo</span>
+        </div>
+        <div class="sidebar-item" onclick="showPage('agents', this)">
+            <span class="icon">&#129302;</span> <span data-i18n="nav_agents">Agentes IA</span>
+            <span class="badge done" data-i18n="badge_done_ai">Completo</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+    <div class="dashboard-header">
+        <h2 data-i18n="dash_title">Strategy Dashboard</h2>
+        <p data-i18n="dash_sub">Vista general del desarrollo del negocio Black Wolf</p>
+    </div>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="m_phase">Fase Actual</div>
+            <div class="metric-value" style="color:var(--accent)">3<span style="font-size:16px;color:var(--text-muted)">/5</span></div>
+            <div class="metric-sub" data-i18n="m_phase_sub">Oferta Irresistible</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="m_questions">Preguntas Clave</div>
+            <div class="metric-value" style="color:var(--green)" id="metric-q">18<span style="font-size:16px;color:var(--text-muted)">/18</span></div>
+            <div class="metric-sub" data-i18n="m_questions_sub">Completadas</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="m_deliverables">Entregables</div>
+            <div class="metric-value" style="color:var(--text-muted)">0<span style="font-size:16px;color:var(--text-muted)">/6</span></div>
+            <div class="metric-sub" data-i18n="m_deliverables_sub">Se desbloquean en Fase 4</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="m_clients">Clientes Actuales</div>
+            <div class="metric-value" style="color:var(--green)">2</div>
+            <div class="metric-sub" data-i18n="m_clients_sub">Manufactura</div>
+        </div>
+    </div>
+
+    <div class="phase-tracker">
+        <h3 data-i18n="roadmap_title">Roadmap de Desarrollo</h3>
+        <div class="phases">
+            <div class="phase completed">
+                <div class="phase-line"></div>
+                <div class="phase-number">1</div>
+                <div class="phase-label">Discovery</div>
+                <div class="phase-desc" data-i18n="ph1_desc">Analisis del negocio, mercado y capacidades</div>
+            </div>
+            <div class="phase completed">
+                <div class="phase-line"></div>
+                <div class="phase-number">2</div>
+                <div class="phase-label" data-i18n="ph2_label">Nicho & Avatar</div>
+                <div class="phase-desc" data-i18n="ph2_desc">Definir mercado objetivo y cliente ideal</div>
+            </div>
+            <div class="phase completed">
+                <div class="phase-line"></div>
+                <div class="phase-number">3</div>
+                <div class="phase-label" data-i18n="ph3_label">Oferta Irresistible</div>
+                <div class="phase-desc" data-i18n="ph3_desc">Paquetizar servicio y pricing</div>
+            </div>
+            <div class="phase active">
+                <div class="phase-line"></div>
+                <div class="phase-number">4</div>
+                <div class="phase-label" data-i18n="ph4_label">Pitch & Materiales</div>
+                <div class="phase-desc" data-i18n="ph4_desc">Pitch deck, biblia, scripts</div>
+            </div>
+            <div class="phase">
+                <div class="phase-number">5</div>
+                <div class="phase-label">Go-To-Market</div>
+                <div class="phase-desc" data-i18n="ph5_desc">Pipeline, outbound, cierre</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <div class="info-card">
+            <h4 data-i18n="dash_assets_title">&#9889; Activos Tecnologicos</h4>
+            <ul>
+                <li data-i18n="dash_a1">Sistema de ciberseguridad (monitorizacion + AI + bloqueos)</li>
+                <li data-i18n="dash_a2">Portal de clientes (CRM / ERP / BI)</li>
+                <li data-i18n="dash_a3">Integracion Fireflies (llamadas + transcripciones)</li>
+                <li data-i18n="dash_a4">Sistema Cold Outbound (en desarrollo)</li>
+                <li data-i18n="dash_a5">AI Comercial / Sales Coach (en desarrollo)</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="dash_situation_title">&#127919; Situacion Actual</h4>
+            <ul>
+                <li data-i18n="dash_s1">2 clientes en manufactura (ERP + All-in-one)</li>
+                <li data-i18n="dash_s2">Servicios custom, no paquetizados</li>
+                <li data-i18n="dash_s3">Equipo: CEO + CTO + BD</li>
+                <li data-i18n="dash_s4">Capacidad tecnica ilimitada (AI, BI, Cyber, Software)</li>
+                <li data-i18n="dash_s5">Falta: oferta clara, nicho, avatar, pricing</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="dash_obj_title">&#128640; Objetivo</h4>
+            <ul>
+                <li data-i18n="dash_o1">Servicio paquetizado de alto ticket</li>
+                <li data-i18n="dash_o2">Nicho con espacio (oceano azul)</li>
+                <li data-i18n="dash_o3">Prospeccion escalable y predecible</li>
+                <li data-i18n="dash_o4">Modelo que pueda llegar a millones/mes</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="dash_del_title">&#128203; Entregables Objetivo</h4>
+            <ul>
+                <li data-i18n="dash_d1">Pitch Deck profesional</li>
+                <li data-i18n="dash_d2">Biblia del negocio</li>
+                <li data-i18n="dash_d3">Oferta irresistible documentada</li>
+                <li data-i18n="dash_d4">Ficha completa del avatar</li>
+                <li data-i18n="dash_d5">Scripts de venta y objeciones</li>
+                <li data-i18n="dash_d6">Estrategia Go-To-Market</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ── DISCOVERY ── -->
+<div class="page" id="page-discovery">
+    <div class="dashboard-header">
+        <h2 data-i18n="disc_title">Discovery — Preguntas Clave</h2>
+        <p data-i18n="disc_sub">Responde estas preguntas para definir la estrategia.</p>
+    </div>
+    <div class="questions-section" id="questions-container">
+        <!-- Questions are generated by JS -->
+    </div>
+    <div class="actions-bar">
+        <button class="btn btn-save" onclick="saveAnswers()" data-i18n="btn_save">Guardar Respuestas</button>
+        <button class="btn btn-primary" onclick="exportForClaude()" data-i18n="btn_export">Exportar para Claude</button>
+        <button class="btn btn-secondary" onclick="clearAll()" data-i18n="btn_clear">Limpiar Todo</button>
+    </div>
+    <div id="export-status" style="margin-top:12px;font-size:13px;color:var(--green);display:none;"></div>
+</div>
+
+<!-- ── DELIVERABLES ── -->
+<div class="page" id="page-deliverables">
+    <div class="dashboard-header">
+        <h2 data-i18n="del_title">Entregables</h2>
+        <p data-i18n="del_sub">Documentos que iremos construyendo. Se desbloquean conforme avanzamos.</p>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(108,92,231,0.15);">&#128214;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_bible">Biblia del Negocio</h4>
+            <p data-i18n="del_bible_desc">Documento maestro con vision, mision, valores, modelo de negocio, procesos y estructura.</p>
+        </div>
+        <span class="deliverable-status status-locked" data-i18n="del_phase4">Fase 4</span>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(0,214,143,0.15);">&#127919;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_avatar">Ficha de Avatar / ICP</h4>
+            <p data-i18n="del_avatar_desc">Perfil detallado del cliente ideal: industria, tamano, dolor, presupuesto, decisor.</p>
+        </div>
+        <span class="deliverable-status status-ready" data-i18n="del_done">Completado</span>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(245,166,35,0.15);">&#9733;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_offer">Oferta Irresistible</h4>
+            <p data-i18n="del_offer_desc">Servicio paquetizado con pricing, scope, garantias y stack de valor.</p>
+        </div>
+        <span class="deliverable-status status-ready" data-i18n="del_done2">Completado</span>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(79,195,247,0.15);">&#128200;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_pitch">Pitch Deck</h4>
+            <p data-i18n="del_pitch_desc">Presentacion profesional para inversores, partners y clientes enterprise.</p>
+        </div>
+        <span class="deliverable-status status-locked" data-i18n="del_phase4b">Fase 4</span>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(255,107,107,0.15);">&#128172;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_scripts">Scripts de Venta</h4>
+            <p data-i18n="del_scripts_desc">Scripts para cold call, cold email, discovery call y closing. Manejo de objeciones.</p>
+        </div>
+        <span class="deliverable-status status-locked" data-i18n="del_phase4c">Fase 4</span>
+    </div>
+    <div class="deliverable-card">
+        <div class="deliverable-icon" style="background:rgba(108,92,231,0.15);">&#128640;</div>
+        <div class="deliverable-info">
+            <h4 data-i18n="del_gtm">Plan Go-To-Market</h4>
+            <p data-i18n="del_gtm_desc">Estrategia de lanzamiento, canales, metricas objetivo y timeline.</p>
+        </div>
+        <span class="deliverable-status status-locked" data-i18n="del_phase5">Fase 5</span>
+    </div>
+</div>
+
+<!-- ── TECH ASSETS ── -->
+<div class="page" id="page-assets">
+    <div class="dashboard-header">
+        <h2 data-i18n="assets_title">Tech Assets</h2>
+        <p data-i18n="assets_sub">Activos tecnologicos propios de Black Wolf</p>
+    </div>
+    <div class="asset-grid">
+        <div class="asset-card">
+            <div class="asset-icon">&#128737;</div>
+            <h4 data-i18n="asset_cyber">Cybersecurity System</h4>
+            <p data-i18n="asset_cyber_desc">Monitorizacion, bloqueos y deteccion con AI integrada</p>
+            <span class="asset-tag" data-i18n="asset_op">Operativo</span>
+        </div>
+        <div class="asset-card">
+            <div class="asset-icon">&#128202;</div>
+            <h4 data-i18n="asset_portal">Client Portal (BI/CRM)</h4>
+            <p data-i18n="asset_portal_desc">Dashboard de metricas, CRM y ERP con integracion Fireflies</p>
+            <span class="asset-tag" data-i18n="asset_op2">Operativo</span>
+        </div>
+        <div class="asset-card">
+            <div class="asset-icon">&#128231;</div>
+            <h4 data-i18n="asset_outbound">Cold Outbound System</h4>
+            <p data-i18n="asset_outbound_desc">Sistema automatizado de prospeccion outbound</p>
+            <span class="asset-tag" style="background:var(--orange-bg);color:var(--orange)" data-i18n="asset_dev">En desarrollo</span>
+        </div>
+        <div class="asset-card">
+            <div class="asset-icon">&#129302;</div>
+            <h4 data-i18n="asset_coach">AI Sales Coach</h4>
+            <p data-i18n="asset_coach_desc">IA comercial para role plays y asistencia en llamadas en vivo</p>
+            <span class="asset-tag" style="background:var(--orange-bg);color:var(--orange)" data-i18n="asset_dev2">En desarrollo</span>
+        </div>
+        <div class="asset-card">
+            <div class="asset-icon">&#128268;</div>
+            <h4>Fireflies Integration</h4>
+            <p data-i18n="asset_fire_desc">Grabacion, transcripcion y analisis de llamadas</p>
+            <span class="asset-tag" data-i18n="asset_op3">Operativo</span>
+        </div>
+        <div class="asset-card">
+            <div class="asset-icon">&#9889;</div>
+            <h4 data-i18n="asset_custom">Custom Dev Capability</h4>
+            <p data-i18n="asset_custom_desc">Capacidad de construir cualquier solucion: AI, BI, Cyber, Apps</p>
+            <span class="asset-tag">Core</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── TEAM ── -->
+<div class="page" id="page-team">
+    <div class="dashboard-header">
+        <h2 data-i18n="team_title">Equipo</h2>
+        <p data-i18n="team_sub">Estructura actual del equipo Black Wolf</p>
+    </div>
+    <div class="cards-grid">
+        <div class="info-card" style="border-color:var(--accent);">
+            <h4 data-i18n="team_ceo">&#128100; CEO (Tu)</h4>
+            <ul>
+                <li data-i18n="team_ceo1">Estrategia de negocio, vision y direccion general</li>
+                <li data-i18n="team_ceo2">Ventas y cierre de clientes (espanol e ingles)</li>
+                <li data-i18n="team_ceo3">Desarrollo de producto y optimizacion</li>
+                <li data-i18n="team_ceo4">Apoyo tecnico al CTO cuando sea necesario</li>
+                <li data-i18n="team_ceo5">LinkedIn organico y posicionamiento personal</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4>&#128187; CTO</h4>
+            <ul>
+                <li data-i18n="team_cto1">Arquitectura tecnica y desarrollo del sistema</li>
+                <li data-i18n="team_cto2">Implementacion y deployment para cada cliente</li>
+                <li data-i18n="team_cto3">Desarrollo de agentes IA y automatizaciones</li>
+                <li data-i18n="team_cto4">Mantenimiento y actualizaciones de la plataforma</li>
+                <li data-i18n="team_cto5">Estandarizacion del playbook de deployment</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="team_bd">&#128188; Business Development (BD)</h4>
+            <ul>
+                <li data-i18n="team_bd1">Prospeccion y generacion de leads (mercado bulgaro)</li>
+                <li data-i18n="team_bd2">Cold calling y secuencias outbound en bulgaro</li>
+                <li data-i18n="team_bd3">Gestion del pipeline y seguimiento de leads</li>
+                <li data-i18n="team_bd4">Cualificacion de leads antes de pasar al CEO</li>
+                <li data-i18n="team_bd5">Relaciones de negocio y networking local</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ── ROADMAP OPERATIVO ── -->
+<div class="page" id="page-roadmap">
+    <div class="dashboard-header">
+        <h2 data-i18n="road_title">Roadmap Operativo — Plan de Ejecucion</h2>
+        <p data-i18n="road_sub">Que tiene que hacer cada persona del equipo, semana a semana, para empezar a prospectar</p>
+    </div>
+
+    <!-- SEMANA 1 -->
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_w1">&#128197; SEMANA 1 — Preparacion de la maquina</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:13px;color:var(--accent);margin-bottom:8px;" data-i18n="road_w1_ceo">CEO</h4>
+                <ul>
+                    <li data-i18n="rw1c1">Finalizar oferta y pricing (hecho)</li>
+                    <li data-i18n="rw1c2">Preparar pitch de venta: script de cold call (2 min) + script discovery call (30 min)</li>
+                    <li data-i18n="rw1c3">Preparar la demo en vivo del dashboard BI — que sea impresionante</li>
+                    <li data-i18n="rw1c4">Crear perfil LinkedIn optimizado como CEO de Black Wolf</li>
+                    <li data-i18n="rw1c5">Validar la lista de leads de Bulgaria con BD</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--green);margin-bottom:8px;" data-i18n="road_w1_cto">CTO</h4>
+                <ul>
+                    <li data-i18n="rw1t1">Estandarizar el deployment: crear playbook paso a paso para montar un cliente nuevo</li>
+                    <li data-i18n="rw1t2">Preparar entorno base/template que se clone para cada cliente</li>
+                    <li data-i18n="rw1t3">Asegurar que la demo del dashboard BI funciona impecable</li>
+                    <li data-i18n="rw1t4">Documentar SOPs internos del sistema</li>
+                    <li data-i18n="rw1t5">Seguir con el delivery de Kingly (prioridad #1)</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--orange);margin-bottom:8px;" data-i18n="road_w1_bd">BD</h4>
+                <ul>
+                    <li data-i18n="rw1b1">Limpiar y segmentar la lista de 1,474 leads de Bulgaria</li>
+                    <li data-i18n="rw1b2">Priorizar leads por tamano de subvencion (mayor a menor)</li>
+                    <li data-i18n="rw1b3">Verificar telefonos y emails de los top 200 leads</li>
+                    <li data-i18n="rw1b4">Preparar templates de mensajes en bulgaro (LinkedIn + Email)</li>
+                    <li data-i18n="rw1b5">Configurar herramientas de outbound (CRM interno, tracking)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMANA 2 -->
+    <div class="info-card" style="border-color:var(--green);margin-bottom:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_w2">&#128293; SEMANA 2 — Empieza la prospeccion</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:13px;color:var(--accent);margin-bottom:8px;" data-i18n="road_w2_ceo">CEO</h4>
+                <ul>
+                    <li data-i18n="rw2c1">Empezar prospeccion ES/EN: 10-15 contactos/dia (LinkedIn + Email)</li>
+                    <li data-i18n="rw2c2">Practicar el pitch de cold call hasta que sea natural</li>
+                    <li data-i18n="rw2c3">Primer post LinkedIn organico (digitalizacion industrial)</li>
+                    <li data-i18n="rw2c4">Revisar con BD los primeros leads contactados en Bulgaria</li>
+                    <li data-i18n="rw2c5">Seguimiento con Kingly — documentar resultados para caso de estudio</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--green);margin-bottom:8px;" data-i18n="road_w2_cto">CTO</h4>
+                <ul>
+                    <li data-i18n="rw2t1">Completar playbook de deployment — debe poder ejecutarse en checklist</li>
+                    <li data-i18n="rw2t2">Delivery Kingly: avanzar al maximo</li>
+                    <li data-i18n="rw2t3">Preparar version demo del sistema para mostrar en calls</li>
+                    <li data-i18n="rw2t4">Automatizar lo que se pueda del onboarding de clientes</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--orange);margin-bottom:8px;" data-i18n="road_w2_bd">BD</h4>
+                <ul>
+                    <li data-i18n="rw2b1">Lanzar primera tanda: 30-40 leads/semana en Bulgaria</li>
+                    <li data-i18n="rw2b2">Dia 1: LinkedIn conexion + mensaje a 30-40 leads</li>
+                    <li data-i18n="rw2b3">Dia 3: Email a los mismos leads</li>
+                    <li data-i18n="rw2b4">Dia 5-7: Cold call a los que no respondieron</li>
+                    <li data-i18n="rw2b5">Registrar todo en el CRM: respuestas, objeciones, interes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMANA 3-4 -->
+    <div class="info-card" style="border-color:var(--orange);margin-bottom:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_w34">&#128200; SEMANAS 3-4 — Primeras reuniones y ajustes</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:13px;color:var(--accent);margin-bottom:8px;" data-i18n="road_w34_ceo">CEO</h4>
+                <ul>
+                    <li data-i18n="rw34c1">Hacer las primeras discovery calls con leads cualificados</li>
+                    <li data-i18n="rw34c2">Mostrar demo en vivo del dashboard — dejar que el prospecto se imagine</li>
+                    <li data-i18n="rw34c3">Recoger objeciones y ajustar el pitch segun feedback</li>
+                    <li data-i18n="rw34c4">Seguir con LinkedIn organico: 3-4 posts/semana</li>
+                    <li data-i18n="rw34c5">Objetivo: agendar 4-6 discovery calls en estas 2 semanas</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--green);margin-bottom:8px;" data-i18n="road_w34_cto">CTO</h4>
+                <ul>
+                    <li data-i18n="rw34t1">Delivery Kingly: acercarse a completar</li>
+                    <li data-i18n="rw34t2">Estar disponible para demos tecnicas si un lead lo pide</li>
+                    <li data-i18n="rw34t3">Iterar el sistema segun feedback de las calls del CEO</li>
+                    <li data-i18n="rw34t4">Preparar los videos de onboarding base (reutilizables)</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--orange);margin-bottom:8px;" data-i18n="road_w34_bd">BD</h4>
+                <ul>
+                    <li data-i18n="rw34b1">Seguir con 30-40 leads nuevos/semana + follow-ups de semanas anteriores</li>
+                    <li data-i18n="rw34b2">Cualificar leads: los que muestren interes, pasarlos al CEO para call</li>
+                    <li data-i18n="rw34b3">Analizar que mensajes/angulos funcionan mejor, optimizar templates</li>
+                    <li data-i18n="rw34b4">Reportar metricas semanales: contactados, respuestas, reuniones agendadas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- MES 2 -->
+    <div class="info-card" style="border-color:var(--blue);margin-bottom:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_m2">&#127919; MES 2 — Primeros cierres</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:13px;color:var(--accent);margin-bottom:8px;" data-i18n="road_m2_ceo">CEO</h4>
+                <ul>
+                    <li data-i18n="rm2c1">Cerrar los primeros 1-2 clientes nuevos</li>
+                    <li data-i18n="rm2c2">Hacer calls de cierre: presentar oferta formal, manejar objeciones</li>
+                    <li data-i18n="rm2c3">Firmar contratos y onboarding de nuevos clientes</li>
+                    <li data-i18n="rm2c4">Empezar a documentar caso de estudio de Kingly (antes/despues)</li>
+                    <li data-i18n="rm2c5">Seguir prospectando: no parar nunca de llenar el pipeline</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--green);margin-bottom:8px;" data-i18n="road_m2_cto">CTO</h4>
+                <ul>
+                    <li data-i18n="rm2t1">Completar delivery de Kingly</li>
+                    <li data-i18n="rm2t2">Empezar deployment de nuevos clientes usando el playbook</li>
+                    <li data-i18n="rm2t3">Medir tiempo real de deployment — optimizar cuellos de botella</li>
+                    <li data-i18n="rm2t4">Desarrollar mejoras al sistema basadas en feedback real</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--orange);margin-bottom:8px;" data-i18n="road_m2_bd">BD</h4>
+                <ul>
+                    <li data-i18n="rm2b1">Volumen: subir a 50+ contactos/semana si la capacidad lo permite</li>
+                    <li data-i18n="rm2b2">Seguir el ciclo: LinkedIn → Email → Cold Call → Follow-up</li>
+                    <li data-i18n="rm2b3">Reportar: conversion rates reales vs esperados, ajustar</li>
+                    <li data-i18n="rm2b4">Empezar a explorar leads fuera de Bulgaria (Espana) si hay capacidad</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- MES 3 -->
+    <div class="info-card" style="border-color:var(--green);margin-bottom:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_m3">&#128640; MES 3 — Maquina en marcha</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:13px;color:var(--accent);margin-bottom:8px;" data-i18n="road_m3_ceo">CEO</h4>
+                <ul>
+                    <li data-i18n="rm3c1">Objetivo: 3-4 clientes activos pagando</li>
+                    <li data-i18n="rm3c2">Publicar caso de estudio de Kingly (web + LinkedIn)</li>
+                    <li data-i18n="rm3c3">Usar caso de estudio en todas las calls de venta</li>
+                    <li data-i18n="rm3c4">Evaluar si se necesita primer hire (dev junior o SDR)</li>
+                    <li data-i18n="rm3c5">Revisar metricas del negocio: MRR, CAC, churn, pipeline</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--green);margin-bottom:8px;" data-i18n="road_m3_cto">CTO</h4>
+                <ul>
+                    <li data-i18n="rm3t1">Delivery de clientes nuevos en paralelo (2-3 simultaneos)</li>
+                    <li data-i18n="rm3t2">Refinar el sistema base: cada cliente nuevo deberia ser mas rapido que el anterior</li>
+                    <li data-i18n="rm3t3">Empezar a crear SOPs de cliente (videos, guias) reutilizables</li>
+                    <li data-i18n="rm3t4">Monitorizar costes de tokens IA — optimizar donde sea necesario</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:13px;color:var(--orange);margin-bottom:8px;" data-i18n="road_m3_bd">BD</h4>
+                <ul>
+                    <li data-i18n="rm3b1">Pipeline constante: minimo 30-50 leads nuevos/semana</li>
+                    <li data-i18n="rm3b2">El ciclo ya deberia estar afinado: saber que mensajes convierten</li>
+                    <li data-i18n="rm3b3">Pasar leads cualificados al CEO de forma sistematica</li>
+                    <li data-i18n="rm3b4">Explorar segundo mercado (Espana) con leads nuevos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="info-card" style="border-color:var(--accent);margin-top:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="road_kpi_title">&#128202; KPIs Semanales por Rol</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;">
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:12px;" data-i18n="road_kpi_ceo">CEO</div>
+                <ul style="text-align:left;">
+                    <li data-i18n="rkpi_c1">Discovery calls/semana: 2-4</li>
+                    <li data-i18n="rkpi_c2">Cierres/mes: 1-2</li>
+                    <li data-i18n="rkpi_c3">Posts LinkedIn/semana: 3-4</li>
+                    <li data-i18n="rkpi_c4">Pipeline activo: 10+ leads en seguimiento</li>
+                </ul>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:12px;" data-i18n="road_kpi_cto">CTO</div>
+                <ul style="text-align:left;">
+                    <li data-i18n="rkpi_t1">Clientes en deployment: max 2-3 simultaneos</li>
+                    <li data-i18n="rkpi_t2">Tiempo por deployment: objetivo &lt;4 semanas</li>
+                    <li data-i18n="rkpi_t3">Bugs/issues resueltos: &lt;48h</li>
+                    <li data-i18n="rkpi_t4">SOPs documentados: 1-2 nuevos/semana</li>
+                </ul>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div style="font-size:12px;color:var(--orange);font-weight:700;margin-bottom:12px;" data-i18n="road_kpi_bd">BD</div>
+                <ul style="text-align:left;">
+                    <li data-i18n="rkpi_b1">Leads contactados/semana: 30-50</li>
+                    <li data-i18n="rkpi_b2">Respuestas obtenidas/semana: 5-10</li>
+                    <li data-i18n="rkpi_b3">Reuniones agendadas/semana: 2-4</li>
+                    <li data-i18n="rkpi_b4">Reporte semanal al CEO: viernes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── NICHE ── -->
+<div class="page" id="page-niche">
+    <div class="dashboard-header">
+        <h2 data-i18n="niche_title">Nicho Definido</h2>
+        <p data-i18n="niche_sub">El mercado objetivo donde Black Wolf va a dominar</p>
+    </div>
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:24px;">
+        <h4 style="font-size:20px;margin-bottom:16px;" data-i18n="niche_main">PYMEs de Manufactura / Industria en Europa</h4>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
+            <div>
+                <div class="metric-label" data-i18n="niche_revenue">Facturacion</div>
+                <div style="font-size:20px;font-weight:700;">3M - 30M EUR/<span data-i18n="niche_year">ano</span></div>
+            </div>
+            <div>
+                <div class="metric-label" data-i18n="niche_employees">Empleados</div>
+                <div style="font-size:20px;font-weight:700;">20 - 200 <span data-i18n="niche_people">personas</span></div>
+            </div>
+            <div>
+                <div class="metric-label" data-i18n="niche_geo">Geografia</div>
+                <div style="font-size:20px;font-weight:700;">Europa (Bulgaria, Espana, DACH, EU)</div>
+            </div>
+            <div>
+                <div class="metric-label" data-i18n="niche_decision">Decisor</div>
+                <div style="font-size:20px;font-weight:700;" data-i18n="niche_owner">Dueno / CEO directo</div>
+            </div>
+        </div>
+    </div>
+    <div class="cards-grid">
+        <div class="info-card">
+            <h4 data-i18n="niche_why_title">&#127919; Por que este nicho</h4>
+            <ul>
+                <li data-i18n="niche_w1">Ya tenemos 2 clientes y traccion real</li>
+                <li data-i18n="niche_w2">Dolor universal: caos operativo, sin sistemas</li>
+                <li data-i18n="niche_w3">El dueno decide rapido, sin comites</li>
+                <li data-i18n="niche_w4">1,474 leads de Bulgaria con subvenciones aprobadas</li>
+                <li data-i18n="niche_w5">Poca competencia tech moderna en el segmento</li>
+                <li data-i18n="niche_w6">Ticket alto justificable por ROI medible</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="niche_comp_title">&#128165; Competencia actual</h4>
+            <ul>
+                <li data-i18n="niche_c1">Odoo / ERPs genericos: complejos, no los usan, sin soporte real</li>
+                <li data-i18n="niche_c2">Consultoras grandes (Accenture, Deloitte): carisimas, 6-12 meses delivery</li>
+                <li data-i18n="niche_c3">Freelancers / agencias locales: piezas sueltas, sin vision integral</li>
+                <li data-i18n="niche_c4">El chico de IT interno: no abarca todo, esta en la operativa</li>
+                <li data-i18n="niche_c5"><strong>Black Wolf: all-in-one, 5 semanas, con ciber + AI incluida = oceano azul</strong></li>
+            </ul>
+        </div>
+    </div>
+    <div class="info-card" style="margin-top:20px;">
+        <h4 data-i18n="niche_tam_title">&#128200; Tamano del mercado (estimacion)</h4>
+        <ul>
+            <li data-i18n="niche_t1"><strong>Bulgaria:</strong> 1,474 empresas con subvenciones de digitalizacion (lista ya disponible)</li>
+            <li data-i18n="niche_t2"><strong>Espana:</strong> ~25,000 PYMEs manufactureras en el rango 3-30M</li>
+            <li data-i18n="niche_t3"><strong>Europa:</strong> ~500,000+ PYMEs industriales en el rango objetivo</li>
+            <li data-i18n="niche_t4">Con capturar 0.01% del mercado europeo = 50 clientes = potencial de 250K+ MRR</li>
+        </ul>
+    </div>
+</div>
+
+<!-- ── AVATAR ── -->
+<div class="page" id="page-avatar">
+    <div class="dashboard-header">
+        <h2 data-i18n="avatar_title">Avatar / ICP — Ficha Completa</h2>
+        <p data-i18n="avatar_sub">El perfil exacto del cliente ideal de Black Wolf</p>
+    </div>
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:24px;padding:28px;">
+        <div style="display:flex;align-items:center;gap:20px;">
+            <div style="width:64px;height:64px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">&#128100;</div>
+            <div>
+                <h4 style="font-size:20px;margin-bottom:4px;" data-i18n="avatar_name">El Dueno Industrial</h4>
+                <p style="color:var(--text-secondary);font-size:14px;" data-i18n="avatar_desc">Dueno/CEO de PYME manufacturera, 30-55 anos, lleva anos con su fabrica</p>
+            </div>
+        </div>
+    </div>
+    <div class="cards-grid">
+        <div class="info-card">
+            <h4 data-i18n="av_demo_title">&#128100; Perfil Demografico</h4>
+            <ul>
+                <li data-i18n="av_d1"><strong>Edad:</strong> 30-55 anos</li>
+                <li data-i18n="av_d2"><strong>Rol:</strong> Dueno / CEO / Fundador</li>
+                <li data-i18n="av_d3"><strong>Empresa:</strong> Manufactura (textil, muebles, metal, plastico, alimentacion...)</li>
+                <li data-i18n="av_d4"><strong>Facturacion:</strong> 3M-30M EUR/ano</li>
+                <li data-i18n="av_d5"><strong>Empleados:</strong> 20-200</li>
+                <li data-i18n="av_d6"><strong>Tech level:</strong> Bajo-medio. Usa Excel, Gmail, algun software suelto</li>
+                <li data-i18n="av_d7"><strong>Consigue clientes:</strong> Eventos, contactos, boca a boca, posicionamiento de anos</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="av_pain_title">&#128545; Dolores Principales</h4>
+            <ul>
+                <li data-i18n="av_p1"><strong>Caos operativo:</strong> todo va por Excel, papel, WhatsApp, boca a boca</li>
+                <li data-i18n="av_p2"><strong>No sabe que pasa en su empresa:</strong> sin metricas, sin KPIs, sin visibilidad</li>
+                <li data-i18n="av_p3"><strong>Empleados sin control:</strong> no sabe si rinden, hacen las tareas incorrectas</li>
+                <li data-i18n="av_p4"><strong>Atrapado en la operativa:</strong> el CEO hace tareas que no deberia</li>
+                <li data-i18n="av_p5"><strong>Pierde deals:</strong> sin follow-ups, sin CRM, los leads se enfrian</li>
+                <li data-i18n="av_p6"><strong>Vulnerable a hackeos:</strong> sin ciberseguridad real</li>
+                <li data-i18n="av_p7"><strong>IT interno limitado:</strong> un chico de tech que no abarca todo</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="av_tried_title">&#10060; Ha intentado antes</h4>
+            <ul>
+                <li data-i18n="av_t1">Odoo / ERPs genericos → demasiado complejo, no lo usa</li>
+                <li data-i18n="av_t2">Apps sueltas del mercado → no se integran, islas de datos</li>
+                <li data-i18n="av_t3">El chico de IT interno → no da abasto, esta en la operativa</li>
+                <li data-i18n="av_t4">Consultoras → caras, lentas, no entienden su negocio</li>
+                <li data-i18n="av_t5"><strong>Resultado: sigue en Excel y caos</strong></li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="av_cost_title">&#128176; Coste de NO actuar (al mes)</h4>
+            <ul>
+                <li data-i18n="av_co1"><strong>4-5 empleados innecesarios:</strong> 8,000 - 15,000 EUR/mes</li>
+                <li data-i18n="av_co2"><strong>Deals perdidos por falta de follow-up:</strong> 10-20% facturacion potencial</li>
+                <li data-i18n="av_co3"><strong>Tiempo del CEO en operativa:</strong> incalculable (coste de oportunidad)</li>
+                <li data-i18n="av_co4"><strong>Errores manuales:</strong> datos duplicados, pedidos mal procesados</li>
+                <li data-i18n="av_co5"><strong>Riesgo ciber:</strong> un hackeo puede costar 50-500K EUR</li>
+                <li data-i18n="av_co6" style="color:var(--green);"><strong>TOTAL estimado: 15,000 - 40,000 EUR/mes perdidos</strong></li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="av_talk_title">&#128172; Como habla (sus palabras)</h4>
+            <ul>
+                <li data-i18n="av_w1">"Quiero saber que pasa en mi empresa"</li>
+                <li data-i18n="av_w2">"Necesito tenerlo todo en un sitio"</li>
+                <li data-i18n="av_w3">"No se que hacen mis empleados realmente"</li>
+                <li data-i18n="av_w4">"Hemos probado Odoo pero no lo usamos"</li>
+                <li data-i18n="av_w5">"No tengo tiempo para nada, estoy en todo"</li>
+                <li data-i18n="av_w6">"Necesito orden y control"</li>
+            </ul>
+        </div>
+        <div class="info-card">
+            <h4 data-i18n="av_contact_title">&#128233; Como contactarle</h4>
+            <ul>
+                <li data-i18n="av_ct1"><strong>Canal #1:</strong> Telefono movil directo (cold call)</li>
+                <li data-i18n="av_ct2"><strong>Canal #2:</strong> LinkedIn</li>
+                <li data-i18n="av_ct3"><strong>Canal #3:</strong> Email (Gmail personal/empresa)</li>
+                <li data-i18n="av_ct4"><strong>Canal #4:</strong> Carta fisica (diferenciador brutal)</li>
+                <li data-i18n="av_ct5"><strong>Presencial:</strong> Eventos industriales, ferias, camaras de comercio</li>
+                <li data-i18n="av_ct6"><strong>Clave:</strong> Multichannel, el telefono es el que cierra</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ── OFFER ── -->
+<div class="page" id="page-offer">
+    <div class="dashboard-header">
+        <h2 data-i18n="offer_title">Oferta Irresistible</h2>
+        <p data-i18n="offer_sub">El sistema paquetizado de Black Wolf para PYMEs industriales</p>
+    </div>
+
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:24px;padding:28px;">
+        <h4 style="font-size:20px;margin-bottom:16px;" data-i18n="offer_model">Modelo de Negocio: Licencia Mensual Recurrente (MRR)</h4>
+        <ul>
+            <li data-i18n="of_m1">El cliente paga una mensualidad fija por acceso al sistema completo</li>
+            <li data-i18n="of_m2">Deja de pagar = pierde acceso. Sin permanencia, pero sin sistema</li>
+            <li data-i18n="of_m3">Incluye actualizaciones constantes, mejoras y tecnologia de vanguardia</li>
+            <li data-i18n="of_m4">Black Wolf actua como el departamento de tecnologia externalizado del cliente</li>
+            <li data-i18n="of_m5">Todos los tiers incluyen TODOS los modulos y agentes IA — lo que cambia es el tamano</li>
+        </ul>
+    </div>
+
+    <div class="info-card" style="margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="offer_includes">&#9889; Que incluye la licencia Black Wolf</h4>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:14px;color:var(--accent);margin-bottom:8px;" data-i18n="of_sys">Sistema All-in-One</h4>
+                <ul>
+                    <li data-i18n="of_s1">Business Intelligence: dashboards, metricas, KPIs en tiempo real</li>
+                    <li data-i18n="of_s2">CRM: gestion de leads, clientes, follow-ups automaticos</li>
+                    <li data-i18n="of_s3">ERP: pedidos, inventario, procesos operativos</li>
+                    <li data-i18n="of_s4">Ciberseguridad: monitorizacion, bloqueos, deteccion con IA</li>
+                    <li data-i18n="of_s5">Agentes IA: ventas, operaciones, soporte, fulfillment, analytics</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:14px;color:var(--green);margin-bottom:8px;" data-i18n="of_svc">Servicio incluido</h4>
+                <ul>
+                    <li data-i18n="of_sv1">Onboarding completo (5 semanas de implementacion)</li>
+                    <li data-i18n="of_sv2">Plataforma de formacion con videos y SOPs por rol</li>
+                    <li data-i18n="of_sv3">Agente IA de soporte 24/7 para dudas del equipo</li>
+                    <li data-i18n="of_sv4">Sesiones en vivo de onboarding (grupales + individuales)</li>
+                    <li data-i18n="of_sv5">Sesiones bajo demanda cuando el cliente las necesite</li>
+                    <li data-i18n="of_sv6">Actualizaciones continuas de tecnologia y agentes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom:16px;font-size:18px;" data-i18n="offer_plans">Planes / Tiers</h3>
+    <div class="tier-grid">
+        <div class="info-card tier-card">
+            <div class="tier-name" style="color:var(--text-muted);">Starter</div>
+            <div class="tier-price" style="color:var(--blue);">4,500<span> EUR/<span data-i18n="tier_month">mes</span></span></div>
+            <div class="tier-users" data-i18n="tier_s_users">Hasta 25 usuarios</div>
+            <ul>
+                <li data-i18n="tier_s1">Sistema All-in-One completo</li>
+                <li data-i18n="tier_s2">Todos los agentes IA incluidos</li>
+                <li data-i18n="tier_s3">Onboarding: 2 sesiones en vivo</li>
+                <li data-i18n="tier_s4">Soporte: agente IA 24/7</li>
+                <li data-i18n="tier_s5">Plataforma de formacion</li>
+                <li data-i18n="tier_s6">Actualizaciones incluidas</li>
+            </ul>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-muted);" data-i18n="tier_s_range">Empresas 1-5M facturacion</div>
+        </div>
+        <div class="info-card tier-card" style="border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow);">
+            <div class="tier-name" style="color:var(--accent);font-weight:700;">Pro — <span data-i18n="tier_rec">Recomendado</span></div>
+            <div class="tier-price" style="color:var(--accent);">8,000<span> EUR/<span data-i18n="tier_month2">mes</span></span></div>
+            <div class="tier-users" data-i18n="tier_p_users">Hasta 75 usuarios</div>
+            <ul>
+                <li data-i18n="tier_p1">Todo lo de Starter +</li>
+                <li data-i18n="tier_p2">Agentes IA personalizados para su operativa</li>
+                <li data-i18n="tier_p3">Onboarding: 4 sesiones en vivo</li>
+                <li data-i18n="tier_p4">Soporte: agente IA + sesiones bajo demanda</li>
+                <li data-i18n="tier_p5">Dashboard ejecutivo para CEO</li>
+                <li data-i18n="tier_p6">Revision trimestral de optimizacion</li>
+            </ul>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-muted);" data-i18n="tier_p_range">Empresas 5-15M facturacion</div>
+        </div>
+        <div class="info-card tier-card">
+            <div class="tier-name" style="color:var(--green);font-weight:700;">Enterprise</div>
+            <div class="tier-price" style="color:var(--green);">Custom<span style="font-size:14px;"> EUR/<span data-i18n="tier_month3">mes</span></span></div>
+            <div class="tier-users" data-i18n="tier_e_users">Usuarios ilimitados</div>
+            <ul>
+                <li data-i18n="tier_e1">Todo lo de Pro +</li>
+                <li data-i18n="tier_e2">Agentes IA ilimitados y a medida</li>
+                <li data-i18n="tier_e3">Onboarding presencial (si aplica)</li>
+                <li data-i18n="tier_e4">Soporte prioritario + account manager dedicado</li>
+                <li data-i18n="tier_e5">Integraciones custom con sus sistemas existentes</li>
+                <li data-i18n="tier_e6">Revision mensual de optimizacion con CEO</li>
+            </ul>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-muted);" data-i18n="tier_e_range">Empresas 15M+ facturacion</div>
+        </div>
+    </div>
+
+    <div class="info-card" style="border-color:var(--green);margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="roi_title">&#128176; Stack de Valor — Por que es irresistible</h4>
+        <div class="roi-grid">
+            <div>
+                <h4 style="font-size:14px;color:var(--red);margin-bottom:8px;" data-i18n="roi_cost_title">Lo que le cuesta NO tener Black Wolf</h4>
+                <ul>
+                    <li data-i18n="roi_c1">4-5 empleados innecesarios: 8,000-15,000 EUR/mes</li>
+                    <li data-i18n="roi_c2">Deals perdidos (sin follow-up): 10-20% facturacion</li>
+                    <li data-i18n="roi_c3">CEO atrapado en operativa: coste de oportunidad incalculable</li>
+                    <li data-i18n="roi_c4">Riesgo de hackeo: 50,000-500,000 EUR por incidente</li>
+                    <li data-i18n="roi_c5">Errores manuales: pedidos mal procesados, datos perdidos</li>
+                    <li data-i18n="roi_c6" style="color:var(--red);font-weight:700;">TOTAL: 15,000-40,000 EUR/mes en perdidas</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:14px;color:var(--green);margin-bottom:8px;" data-i18n="roi_get_title">Lo que obtiene con Black Wolf</h4>
+                <ul>
+                    <li data-i18n="roi_g1">Visibilidad total de su negocio en un dashboard</li>
+                    <li data-i18n="roi_g2">Reduccion 20-30% en plantilla operativa</li>
+                    <li data-i18n="roi_g3">+10-20% facturacion por optimizacion comercial</li>
+                    <li data-i18n="roi_g4">CEO libre para trabajar EN el negocio, no en la operativa</li>
+                    <li data-i18n="roi_g5">Ciberseguridad real con IA monitorizando 24/7</li>
+                    <li data-i18n="roi_g6">Agentes IA haciendo lo que antes hacian empleados</li>
+                    <li data-i18n="roi_g7" style="color:var(--green);font-weight:700;">ROI: paga 4.5-8K, ahorra/genera 15-40K+</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card" style="text-align:center;padding:32px;border-color:var(--accent);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:12px;" data-i18n="pitch_label">El pitch en una frase</div>
+        <div style="font-size:18px;font-weight:700;line-height:1.5;" data-i18n="pitch_text">"Eliminamos el caos de tu empresa en 5 semanas. Un sistema con IA que centraliza tus operaciones, protege tu negocio y te da el control total para escalar."</div>
+    </div>
+</div>
+
+<!-- ── BUSINESS ANALYSIS ── -->
+<div class="page" id="page-analysis">
+    <div class="dashboard-header">
+        <h2 data-i18n="analysis_title">Analisis de Negocio</h2>
+        <p data-i18n="analysis_sub">Evaluacion estrategica del modelo Black Wolf</p>
+    </div>
+
+    <!-- Blue Ocean -->
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:24px;padding:28px;">
+        <h4 style="font-size:20px;margin-bottom:16px;" data-i18n="an_ocean_title">&#127754; Oceano Azul — Por que este mercado es unico</h4>
+        <p style="color:var(--text-secondary);margin-bottom:16px;" data-i18n="an_ocean_intro">No es que nadie venda tecnologia a PYMEs industriales. Lo que nadie hace es la combinacion completa:</p>
+        <ul>
+            <li data-i18n="an_oc1"><strong>All-in-one real</strong> (BI + CRM + ERP + Ciber + IA) en un solo login — los demas venden piezas sueltas</li>
+            <li data-i18n="an_oc2"><strong>5 semanas de delivery</strong> — las consultoras tardan 6-12 meses</li>
+            <li data-i18n="an_oc3"><strong>Licencia accesible</strong> (4.5-8K/mes) — las consultoras cobran 100-500K de setup</li>
+            <li data-i18n="an_oc4"><strong>IA integrada de verdad</strong> — los ERPs tradicionales no tienen IA real</li>
+            <li data-i18n="an_oc5"><strong>Orientado al dueno</strong> — los ERPs estan disenados para IT, no para el CEO que quiere entender su negocio en 30 segundos</li>
+        </ul>
+        <p style="color:var(--accent);font-weight:700;margin-top:16px;" data-i18n="an_oc_conclusion">El oceano azul no es la tecnologia en si — es la combinacion + segmento + precio + velocidad. Eso no existe hoy.</p>
+    </div>
+
+    <!-- Will they pay? -->
+    <div class="info-card" style="margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="an_pay_title">&#128176; Pagaran estos precios? — Matematicas del ROI</h4>
+        <p style="color:var(--text-secondary);margin-bottom:16px;" data-i18n="an_pay_intro">Ejemplo: dueno de fabrica, 5M facturacion, 40 empleados:</p>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <ul>
+                    <li data-i18n="an_pay1"><strong>Ahorro en plantilla</strong> (4 empleados x 1,500-2,000 EUR): 6,000-8,000 EUR/mes</li>
+                    <li data-i18n="an_pay2"><strong>Incremento facturacion</strong> (+10% sobre 5M): ~3,300 EUR/mes</li>
+                    <li data-i18n="an_pay3"><strong>Prevencion hackeo:</strong> 50-500K EUR que no pierde</li>
+                    <li data-i18n="an_pay4" style="color:var(--green);font-weight:700;">Valor total generado: 10,000-15,000+ EUR/mes</li>
+                </ul>
+            </div>
+            <div>
+                <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;text-align:center;">
+                    <div class="metric-label" data-i18n="an_pay_roi_label">ROI para el cliente</div>
+                    <div style="font-size:48px;font-weight:800;color:var(--green);">3-4x</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:8px;" data-i18n="an_pay_roi_desc">Paga 4,500 EUR/mes → Ahorra/genera 10,000-15,000+ EUR/mes</p>
+                </div>
+            </div>
+        </div>
+        <p style="color:var(--text-secondary);margin-top:16px;font-style:italic;" data-i18n="an_pay_key">Clave: el problema no es el precio. El problema es que el dueno no sabe calcular cuanto le cuesta su caos. Tu trabajo en la venta es hacerselo ver.</p>
+    </div>
+
+    <!-- Strengths & Risks -->
+    <div class="cards-grid">
+        <div class="info-card" style="border-color:var(--green);">
+            <h4 data-i18n="an_str_title">&#128170; Fortalezas del modelo</h4>
+            <ul>
+                <li data-i18n="an_str1">Posicionamiento unico: all-in-one que nadie mas ofrece en el segmento</li>
+                <li data-i18n="an_str2">Delivery rapido (5 semanas) vs competencia (6-12 meses)</li>
+                <li data-i18n="an_str3">Coste de delivery bajisimo (~200 EUR/mes + horas equipo)</li>
+                <li data-i18n="an_str4">Margenes >80% en el servicio</li>
+                <li data-i18n="an_str5">MRR predecible con modelo de licencia</li>
+                <li data-i18n="an_str6">Decisor directo (dueno) = ciclo de venta corto</li>
+                <li data-i18n="an_str7">100% remoto = mercado europeo entero</li>
+                <li data-i18n="an_str8">Pipeline inmediato: 1,474 leads Bulgaria con subvenciones</li>
+            </ul>
+        </div>
+        <div class="info-card" style="border-color:var(--red);">
+            <h4 data-i18n="an_risk_title">&#9888; Riesgos y mitigacion</h4>
+            <ul>
+                <li data-i18n="an_risk1"><strong>Costes de tokens IA:</strong> Pueden comerse 10-20% del revenue. Mitigacion: optimizar prompts, cachear respuestas, costes bajan cada 6 meses</li>
+                <li data-i18n="an_risk2"><strong>Delivery con equipo pequeno:</strong> 3 clientes nuevos al mes = CTO colapsado. Mitigacion: estandarizar deployment con playbooks y plantillas</li>
+                <li data-i18n="an_risk3"><strong>Sin caso de estudio:</strong> Freno para cerrar en frio. Mitigacion: Kingly sera el caso #1 en 2-3 meses. Hasta entonces, vender con demos en vivo</li>
+                <li data-i18n="an_risk4"><strong>Dependencia del CTO:</strong> Si el CTO cae, todo para. Mitigacion: documentar todo, SOPs internos, contratar primer dev en mes 4-6</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Revenue Projections -->
+    <div class="info-card" style="margin-top:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="an_proj_title">&#128200; Proyeccion de Revenue</h4>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div class="metric-label" data-i18n="an_proj_m3">Mes 3</div>
+                <div style="font-size:28px;font-weight:800;color:var(--blue);">~18K</div>
+                <div style="font-size:11px;color:var(--text-muted);" data-i18n="an_proj_m3_desc">3-4 clientes</div>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div class="metric-label" data-i18n="an_proj_m6">Mes 6</div>
+                <div style="font-size:28px;font-weight:800;color:var(--accent);">~50K</div>
+                <div style="font-size:11px;color:var(--text-muted);" data-i18n="an_proj_m6_desc">8-10 clientes</div>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div class="metric-label" data-i18n="an_proj_m9">Mes 9</div>
+                <div style="font-size:28px;font-weight:800;color:var(--orange);">~90K</div>
+                <div style="font-size:11px;color:var(--text-muted);" data-i18n="an_proj_m9_desc">15-18 clientes</div>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:12px;padding:20px;">
+                <div class="metric-label" data-i18n="an_proj_m12">Mes 12</div>
+                <div style="font-size:28px;font-weight:800;color:var(--green);">~150K</div>
+                <div style="font-size:11px;color:var(--text-muted);" data-i18n="an_proj_m12_desc">25-30 clientes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="info-card" style="text-align:center;padding:32px;border-color:var(--green);margin-top:20px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:12px;" data-i18n="an_verdict_label">Veredicto</div>
+        <div style="font-size:18px;font-weight:700;line-height:1.5;" data-i18n="an_verdict">Negocio viable con potencial real de 100K+ MRR en 12 meses. El riesgo no esta en el mercado ni en el producto — esta en la ejecucion y en no morir en el delivery cuando empeceis a cerrar.</div>
+    </div>
+</div>
+
+<!-- ── GO-TO-MARKET ── -->
+<div class="page" id="page-gtm">
+    <div class="dashboard-header">
+        <h2 data-i18n="gtm_title">Go-To-Market Strategy</h2>
+        <p data-i18n="gtm_sub">Plan de adquisicion de clientes por fases</p>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="info-card" style="border-color:var(--accent);margin-bottom:24px;padding:28px;">
+        <h4 style="font-size:18px;margin-bottom:4px;" data-i18n="gtm_p1_title">&#128293; Fase 1: Solo Outbound Directo (Meses 1-3)</h4>
+        <p style="color:var(--text-secondary);margin-bottom:16px;" data-i18n="gtm_p1_sub">Cold call + LinkedIn + Email. Nada mas.</p>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:14px;color:var(--accent);margin-bottom:8px;" data-i18n="gtm_p1_why">Por que solo outbound</h4>
+                <ul>
+                    <li data-i18n="gtm_p1w1">No hay runway para esperar SEO (6-12 meses)</li>
+                    <li data-i18n="gtm_p1w2">Paid media para B2B industrial con ticket 4.5-8K no funciona bien</li>
+                    <li data-i18n="gtm_p1w3">Necesitais feedback del mercado rapido: objeciones, lenguaje, pitch</li>
+                    <li data-i18n="gtm_p1w4">1,474 leads de Bulgaria con subvenciones = pipeline para 6+ meses</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:14px;color:var(--green);margin-bottom:8px;" data-i18n="gtm_p1_seq">Secuencia de contacto</h4>
+                <ul>
+                    <li data-i18n="gtm_sq1"><strong>Dia 1 — LinkedIn:</strong> Conexion + mensaje corto. No vendas, genera curiosidad</li>
+                    <li data-i18n="gtm_sq2"><strong>Dia 3 — Email:</strong> Dato de dolor + propuesta. Corto y directo</li>
+                    <li data-i18n="gtm_sq3"><strong>Dia 5-7 — Cold Call:</strong> Llamada directa. Esto es lo que cierra</li>
+                    <li data-i18n="gtm_sq4"><strong>Dia 10, 15, 21 — Follow-up:</strong> Repetir con angulos diferentes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion Metrics -->
+    <div class="info-card" style="margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="gtm_conv_title">&#128202; Ratios de Conversion Esperados</h4>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <h4 style="font-size:14px;color:var(--blue);margin-bottom:8px;" data-i18n="gtm_conv_bg">Bulgaria (con subvenciones)</h4>
+                <ul>
+                    <li data-i18n="gtm_cb1">Respuesta LinkedIn: 15-25%</li>
+                    <li data-i18n="gtm_cb2">Apertura email: 40-50%</li>
+                    <li data-i18n="gtm_cb3">Conversion a reunion: 5-8% del total contactado</li>
+                    <li data-i18n="gtm_cb4">Conversion reunion a cierre: 20-30% (sin caso estudio) / 30-40% (con caso estudio)</li>
+                    <li data-i18n="gtm_cb5" style="color:var(--green);font-weight:600;">De 100 leads: 5-8 reuniones → 1-2 cierres</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size:14px;color:var(--orange);margin-bottom:8px;" data-i18n="gtm_conv_cold">Cold market (sin subvenciones)</h4>
+                <ul>
+                    <li data-i18n="gtm_cc1">Conexion cold call: 5-10%</li>
+                    <li data-i18n="gtm_cc2">De los que conectas, reunion: 10-20%</li>
+                    <li data-i18n="gtm_cc3">Conversion reunion a cierre: 20-30%</li>
+                    <li data-i18n="gtm_cc4" style="color:var(--orange);font-weight:600;">De 200-300 llamadas: 1 cierre</li>
+                </ul>
+            </div>
+        </div>
+        <div style="background:var(--bg-secondary);border-radius:12px;padding:16px;margin-top:16px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;" data-i18n="gtm_pipeline_calc">Con 1,474 leads Bulgaria + 30-40 contactos/semana = <span style="color:var(--green);">9-12 meses de pipeline</span> solo con Bulgaria</p>
+        </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="info-card" style="margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:4px;" data-i18n="gtm_p2_title">&#128221; Fase 2: Contenido Organico (Meses 3-6)</h4>
+        <p style="color:var(--text-secondary);margin-bottom:16px;" data-i18n="gtm_p2_sub">Cuando tengais 3-5 clientes y caso de estudio</p>
+        <ul>
+            <li data-i18n="gtm_p2_1"><strong>LinkedIn organico del CEO:</strong> Posts sobre digitalizacion industrial, casos reales, datos del sector. 3-4 posts/semana. Construye autoridad</li>
+            <li data-i18n="gtm_p2_2"><strong>Web profesional:</strong> Con caso de estudio, oferta clara, formulario de contacto</li>
+            <li data-i18n="gtm_p2_3"><strong>SEO basico:</strong> Articulos sobre "digitalizacion para fabricas", "ERP para manufactura", "ciberseguridad industrial". Keywords con poca competencia y alto intent</li>
+        </ul>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="info-card" style="margin-bottom:24px;">
+        <h4 style="font-size:18px;margin-bottom:4px;" data-i18n="gtm_p3_title">&#128640; Fase 3: Escalar (Meses 6-12)</h4>
+        <p style="color:var(--text-secondary);margin-bottom:16px;" data-i18n="gtm_p3_sub">Si los numeros lo justifican</p>
+        <ul>
+            <li data-i18n="gtm_p3_1"><strong>LinkedIn Ads:</strong> Targeting por industria, tamano, cargo (CEO/Owner). Caro (15-30 EUR/clic) pero targeting preciso. Con ticket de 4.5K/mes, CAC de 2-3K es asumible</li>
+            <li data-i18n="gtm_p3_2"><strong>Google Ads:</strong> Keywords especificas ("ERP manufactura", "software para fabricas"). Pocas busquedas pero alta intencion</li>
+            <li data-i18n="gtm_p3_3"><strong>Eventos y ferias industriales:</strong> Stand en ferias. 10-20 leads cualificados por evento</li>
+        </ul>
+    </div>
+
+    <!-- What NOT to do -->
+    <div class="info-card" style="border-color:var(--red);margin-bottom:24px;">
+        <h4 data-i18n="gtm_not_title">&#10060; Lo que NO hacer</h4>
+        <ul>
+            <li data-i18n="gtm_no1"><strong>No Instagram, no TikTok, no Facebook Ads</strong> — Tu cliente no busca ERPs ahi</li>
+            <li data-i18n="gtm_no2"><strong>No content marketing masivo al principio</strong> — No hay tiempo ni recursos</li>
+            <li data-i18n="gtm_no3"><strong>No webinars hasta tener caso de estudio</strong> — Sin resultados que mostrar, es humo</li>
+            <li data-i18n="gtm_no4"><strong>No bajar precios para cerrar</strong> — Mejor perder un cliente que entrenar al mercado a que sois baratos</li>
+        </ul>
+    </div>
+
+    <!-- Immediate Actions -->
+    <div class="info-card" style="border-color:var(--green);">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="gtm_now_title">&#9889; Acciones Inmediatas (esta semana)</h4>
+        <ul>
+            <li data-i18n="gtm_now1"><strong>1.</strong> Cerrar Kingly impecablemente — Es tu primer caso de estudio. Documenta todo: antes/despues, metricas, testimonial en video</li>
+            <li data-i18n="gtm_now2"><strong>2.</strong> Estandarizar el deployment — Que montar un cliente nuevo sea un playbook, no empezar de cero</li>
+            <li data-i18n="gtm_now3"><strong>3.</strong> Atacar Bulgaria primero — Lista de leads + subvenciones = dinero mas facil del mercado</li>
+            <li data-i18n="gtm_now4"><strong>4.</strong> No vender ciber como gancho — Vende el BI y el control. La ciber es el bonus que les vuela la cabeza despues</li>
+            <li data-i18n="gtm_now5"><strong>5.</strong> Preparar la demo en vivo — El dashboard de BI es tu arma. Que sea impresionante</li>
+        </ul>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="info-card" style="margin-top:20px;">
+        <h4 style="font-size:18px;margin-bottom:16px;" data-i18n="gtm_summary_title">&#128203; Resumen Ejecutivo</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border);border-radius:8px;overflow:hidden;">
+            <div style="background:var(--bg-secondary);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q1">Oceano azul?</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;color:var(--green);" data-i18n="gtm_sum_a1">Si — la combinacion es unica</div>
+            <div style="background:var(--bg-card);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q2">Pagaran?</div>
+            <div style="background:var(--bg-card);padding:12px 16px;color:var(--green);" data-i18n="gtm_sum_a2">Si — ROI de 3-4x claro</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q3">Canal principal?</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;" data-i18n="gtm_sum_a3">Cold call + LinkedIn + Email</div>
+            <div style="background:var(--bg-card);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q4">Paid media ahora?</div>
+            <div style="background:var(--bg-card);padding:12px 16px;color:var(--red);" data-i18n="gtm_sum_a4">No — en 6 meses</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q5">SEO ahora?</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;color:var(--orange);" data-i18n="gtm_sum_a5">No — en 3 meses</div>
+            <div style="background:var(--bg-card);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q6">Mayor riesgo?</div>
+            <div style="background:var(--bg-card);padding:12px 16px;" data-i18n="gtm_sum_a6">Delivery con equipo pequeno</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;font-weight:600;" data-i18n="gtm_sum_q7">Tiempo a primeros resultados?</div>
+            <div style="background:var(--bg-secondary);padding:12px 16px;color:var(--green);" data-i18n="gtm_sum_a7">4-8 semanas desde que empeceis</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── AI AGENTS ── -->
+<div class="page" id="page-agents">
+    <h2 data-i18n="ai_title">Agentes de IA Internos</h2>
+    <p style="color:var(--text-secondary);margin-bottom:24px;" data-i18n="ai_subtitle">Sistema de agentes autonomos para escalar Black Wolf de 3 personas a capacidad de 50+ sin contratar. Cada agente opera 24/7 y se conecta al ecosistema central.</p>
+
+    <!-- Resumen de impacto -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;">
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="ai_m1_label">Agentes Planificados</div>
+            <div class="metric-value" style="color:var(--accent)">8</div>
+            <div class="metric-sub" data-i18n="ai_m1_sub">Operativos en 6 meses</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="ai_m2_label">Horas Automatizadas</div>
+            <div class="metric-value" style="color:var(--green)">200+</div>
+            <div class="metric-sub" data-i18n="ai_m2_sub">Horas/semana ahorradas</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="ai_m3_label">Capacidad Equivalente</div>
+            <div class="metric-value" style="color:var(--orange)">50</div>
+            <div class="metric-sub" data-i18n="ai_m3_sub">Empleados equivalentes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label" data-i18n="ai_m4_label">Coste vs Equipo</div>
+            <div class="metric-value" style="color:var(--green)">90%</div>
+            <div class="metric-sub" data-i18n="ai_m4_sub">Ahorro vs contratar</div>
+        </div>
+    </div>
+
+    <!-- Mapa de agentes -->
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;font-size:18px;" data-i18n="ai_map_title">Mapa de Agentes por Area</h3>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+
+            <!-- AGENTE 1: Prospector -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#127919;</span>
+                    <div>
+                        <h4 data-i18n="ai_a1_name">Agente Prospector</h4>
+                        <span style="font-size:11px;color:var(--green);font-weight:600;" data-i18n="ai_a1_priority">PRIORIDAD ALTA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a1_desc">Busca y enriquece leads de manufactura automaticamente. Scraping de directorios, LinkedIn, bases de datos de subvenciones. Genera listas limpias con email, telefono, tamano y sector.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a1_t1">Web Scraping</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a1_t2">Data Enrichment</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a1_t3">Lead Scoring</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a1_output">Output: 500+ leads cualificados/semana</div>
+            </div>
+
+            <!-- AGENTE 2: Qualifier -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#9878;&#65039;</span>
+                    <div>
+                        <h4 data-i18n="ai_a2_name">Agente Cualificador</h4>
+                        <span style="font-size:11px;color:var(--green);font-weight:600;" data-i18n="ai_a2_priority">PRIORIDAD ALTA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a2_desc">Analiza cada lead y puntua segun ICP (tamano, sector, facturacion, nivel digital). Filtra los que NO encajan. Prioriza los que tienen subvenciones activas o dolor visible.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a2_t1">ICP Matching</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a2_t2">Scoring ML</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a2_t3">Auto-Research</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a2_output">Output: Top 50 leads priorizados/semana</div>
+            </div>
+
+            <!-- AGENTE 3: Outreach -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#9993;&#65039;</span>
+                    <div>
+                        <h4 data-i18n="ai_a3_name">Agente Outreach</h4>
+                        <span style="font-size:11px;color:var(--green);font-weight:600;" data-i18n="ai_a3_priority">PRIORIDAD ALTA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a3_desc">Ejecuta secuencias multicanal automaticas: emails personalizados, mensajes LinkedIn, y prepara scripts de cold call. Cada mensaje adaptado al contexto del lead.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a3_t1">Email Sequences</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a3_t2">LinkedIn Auto</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a3_t3">Call Scripts</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a3_output">Output: 200+ contactos/semana en autopiloto</div>
+            </div>
+
+            <!-- AGENTE 4: Sales Coach -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#127908;</span>
+                    <div>
+                        <h4 data-i18n="ai_a4_name">Agente Sales Coach</h4>
+                        <span style="font-size:11px;color:var(--orange);font-weight:600;" data-i18n="ai_a4_priority">PRIORIDAD MEDIA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a4_desc">Escucha las llamadas de venta (via Fireflies), analiza objeciones, sugiere rebuttals en tiempo real, y genera reportes post-llamada con coaching personalizado.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a4_t1">Call Analysis</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a4_t2">Objection Handling</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a4_t3">Performance Reports</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a4_output">Output: +30% conversion rate en calls</div>
+            </div>
+
+            <!-- AGENTE 5: Deployment -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#9881;&#65039;</span>
+                    <div>
+                        <h4 data-i18n="ai_a5_name">Agente Deployment</h4>
+                        <span style="font-size:11px;color:var(--orange);font-weight:600;" data-i18n="ai_a5_priority">PRIORIDAD MEDIA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a5_desc">Automatiza el setup de nuevos clientes: crea instancia, configura dashboards, migra datos, activa modulos. Reduce el onboarding de 5 semanas a 2 semanas.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a5_t1">Auto-Setup</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a5_t2">Data Migration</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a5_t3">Config Templates</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a5_output">Output: Onboarding 60% mas rapido</div>
+            </div>
+
+            <!-- AGENTE 6: Soporte -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#128172;</span>
+                    <div>
+                        <h4 data-i18n="ai_a6_name">Agente Soporte 24/7</h4>
+                        <span style="font-size:11px;color:var(--orange);font-weight:600;" data-i18n="ai_a6_priority">PRIORIDAD MEDIA</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a6_desc">Chatbot inteligente que resuelve el 80% de tickets sin intervencion humana. Conoce la plataforma, los datos del cliente y su configuracion. Escala solo lo complejo.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a6_t1">Ticket Resolution</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a6_t2">Knowledge Base</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a6_t3">Smart Escalation</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a6_output">Output: 80% tickets resueltos sin humano</div>
+            </div>
+
+            <!-- AGENTE 7: Reporting -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#128200;</span>
+                    <div>
+                        <h4 data-i18n="ai_a7_name">Agente Reporting</h4>
+                        <span style="font-size:11px;color:var(--blue);font-weight:600;" data-i18n="ai_a7_priority">FASE 2</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a7_desc">Genera informes automaticos para clientes: KPIs de produccion, financieros, riesgo ciber. Envio semanal/mensual sin que el equipo toque nada. Reduce churn un 40%.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a7_t1">Auto Reports</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a7_t2">KPI Alerts</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a7_t3">Client Comms</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a7_output">Output: Informes automaticos para cada cliente</div>
+            </div>
+
+            <!-- AGENTE 8: Contenido -->
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <span style="font-size:24px;">&#128221;</span>
+                    <div>
+                        <h4 data-i18n="ai_a8_name">Agente Contenido</h4>
+                        <span style="font-size:11px;color:var(--blue);font-weight:600;" data-i18n="ai_a8_priority">FASE 2</span>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;" data-i18n="ai_a8_desc">Genera contenido de marketing: posts LinkedIn, casos de estudio, newsletters, white papers. Usa datos reales de clientes (anonimizados) para crear contenido con autoridad.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a8_t1">LinkedIn Posts</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a8_t2">Case Studies</span>
+                    <span style="background:var(--accent-glow);color:var(--accent);padding:3px 8px;border-radius:6px;font-size:11px;" data-i18n="ai_a8_t3">Newsletters</span>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="ai_a8_output">Output: 20+ piezas de contenido/semana</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roadmap de implementacion -->
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;font-size:18px;" data-i18n="ai_roadmap_title">Roadmap de Implementacion</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div style="background:var(--bg-secondary);border-radius:10px;padding:20px;border-left:4px solid var(--green);">
+                <h4 style="color:var(--green);margin-bottom:8px;" data-i18n="ai_phase1_title">Mes 1-2: Ventas</h4>
+                <p style="font-size:13px;color:var(--text-secondary);" data-i18n="ai_phase1_desc">Prospector + Cualificador + Outreach. Los 3 agentes que generan pipeline. Objetivo: sistema de ventas en autopiloto que llene la agenda de calls.</p>
+                <div style="margin-top:10px;padding:8px;background:var(--green-bg);border-radius:6px;font-size:12px;color:var(--green);font-weight:600;" data-i18n="ai_phase1_impact">Impacto: De 0 a 50+ calls cualificadas/mes</div>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:10px;padding:20px;border-left:4px solid var(--orange);">
+                <h4 style="color:var(--orange);margin-bottom:8px;" data-i18n="ai_phase2_title">Mes 3-4: Operaciones</h4>
+                <p style="font-size:13px;color:var(--text-secondary);" data-i18n="ai_phase2_desc">Sales Coach + Deployment + Soporte. Los agentes que optimizan la conversion y reducen el coste de delivery y soporte post-venta.</p>
+                <div style="margin-top:10px;padding:8px;background:var(--orange-bg);border-radius:6px;font-size:12px;color:var(--orange);font-weight:600;" data-i18n="ai_phase2_impact">Impacto: 2x capacidad de delivery sin contratar</div>
+            </div>
+            <div style="background:var(--bg-secondary);border-radius:10px;padding:20px;border-left:4px solid var(--blue);">
+                <h4 style="color:var(--blue);margin-bottom:8px;" data-i18n="ai_phase3_title">Mes 5-6: Escala</h4>
+                <p style="font-size:13px;color:var(--text-secondary);" data-i18n="ai_phase3_desc">Reporting + Contenido. Los agentes que retienen clientes y generan inbound organico. Reducen churn y crean autoridad de marca.</p>
+                <div style="margin-top:10px;padding:8px;background:var(--blue-bg);border-radius:6px;font-size:12px;color:var(--blue);font-weight:600;" data-i18n="ai_phase3_impact">Impacto: Churn -40%, inbound leads +300%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- El multiplicador -->
+    <div style="background:linear-gradient(135deg, rgba(108,92,231,0.15), rgba(0,214,143,0.1));border:1px solid var(--accent);border-radius:12px;padding:24px;">
+        <h3 style="margin-bottom:12px;font-size:18px;" data-i18n="ai_multiplier_title">El Multiplicador: Por que los agentes son el camino a 1M/mes</h3>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
+            <div>
+                <h4 style="color:var(--red);margin-bottom:8px;" data-i18n="ai_without_title">Sin Agentes (modelo tradicional)</h4>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.8;" data-i18n="ai_without_desc">- 3 personas = max 10-15 clientes
+- Necesitas contratar para crecer
+- Coste por empleado: 2,500-4,000 EUR/mes
+- Para 100 clientes necesitas 20-30 personas
+- Coste equipo: 60,000-120,000 EUR/mes
+- Margen se comprime al 30-40%
+- Crecimiento lineal y lento</p>
+            </div>
+            <div>
+                <h4 style="color:var(--green);margin-bottom:8px;" data-i18n="ai_with_title">Con Agentes (modelo Black Wolf)</h4>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.8;" data-i18n="ai_with_desc">- 3 personas + 8 agentes = 50-100 clientes
+- Agentes escalan sin coste marginal
+- Coste agentes: 500-1,000 EUR/mes (tokens + infra)
+- Para 100 clientes necesitas 5-8 personas
+- Coste equipo + agentes: 15,000-25,000 EUR/mes
+- Margen se mantiene al 70-80%
+- Crecimiento exponencial</p>
+            </div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(0,214,143,0.1);border-radius:8px;text-align:center;">
+            <span style="font-size:14px;font-weight:700;color:var(--green);" data-i18n="ai_conclusion">Con agentes: 100 clientes x 6,500 EUR/mes = 650,000 EUR MRR con equipo de 5-8 personas y margenes del 75%</span>
+        </div>
+    </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main-layout -->
+
+<!-- Notes Panel -->
+<div class="notes-panel" id="notesPanel">
+    <h3 data-i18n="notes_title">&#128221; Notas de Sesion</h3>
+    <textarea id="sessionNotes" placeholder="Escribe tus notas aqui..."></textarea>
+    <div class="actions-bar">
+        <button class="btn btn-save" onclick="saveNotes()" data-i18n="btn_save_notes">Guardar</button>
+        <button class="btn btn-secondary" onclick="toggleNotes()" data-i18n="btn_close">Cerrar</button>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// TRANSLATION SYSTEM
+// ══════════════════════════════════════
+const i18n = {
+    en: {
+        subtitle: "Business Strategy Workspace",
+        status_phase: "Phase 3 — Irresistible Offer",
+        btn_notes: "Notes",
+        nav_strategy: "Strategy",
+        nav_dashboard: "Dashboard",
+        nav_discovery: "Discovery",
+        nav_deliverables: "Deliverables",
+        nav_assets_section: "Assets",
+        nav_tech_assets: "Tech Assets",
+        nav_team: "Team",
+        nav_development: "Development",
+        nav_niche: "Niche",
+        nav_avatar: "Avatar",
+        nav_offer: "Offer",
+        nav_analysis: "Analysis",
+        nav_gtm: "Go-To-Market",
+        badge_defined: "Defined",
+        badge_defined2: "Defined",
+        badge_defined3: "Defined",
+        badge_done_a: "Complete",
+        badge_done_g: "Complete",
+        // Dashboard
+        dash_title: "Strategy Dashboard",
+        dash_sub: "Black Wolf business development overview",
+        m_phase: "Current Phase",
+        m_phase_sub: "Irresistible Offer",
+        m_questions: "Key Questions",
+        m_questions_sub: "Completed",
+        m_deliverables: "Deliverables",
+        m_deliverables_sub: "Unlock in Phase 4",
+        m_clients: "Current Clients",
+        m_clients_sub: "Manufacturing",
+        roadmap_title: "Development Roadmap",
+        ph1_desc: "Business, market & capabilities analysis",
+        ph2_label: "Niche & Avatar",
+        ph2_desc: "Define target market and ideal client",
+        ph3_label: "Irresistible Offer",
+        ph3_desc: "Package service and pricing",
+        ph4_label: "Pitch & Materials",
+        ph4_desc: "Pitch deck, bible, scripts",
+        ph5_desc: "Pipeline, outbound, closing",
+        dash_assets_title: "⚡ Tech Assets",
+        dash_a1: "Cybersecurity system (monitoring + AI + blocking)",
+        dash_a2: "Client portal (CRM / ERP / BI)",
+        dash_a3: "Fireflies integration (calls + transcriptions)",
+        dash_a4: "Cold Outbound System (in development)",
+        dash_a5: "AI Sales Coach (in development)",
+        dash_situation_title: "🎯 Current Situation",
+        dash_s1: "2 manufacturing clients (ERP + All-in-one)",
+        dash_s2: "Custom services, not packaged",
+        dash_s3: "Team: CEO + CTO + BD",
+        dash_s4: "Unlimited tech capability (AI, BI, Cyber, Software)",
+        dash_s5: "Missing: clear offer, niche, avatar, pricing",
+        dash_obj_title: "🚀 Objective",
+        dash_o1: "High-ticket packaged service",
+        dash_o2: "Niche with space (blue ocean)",
+        dash_o3: "Scalable and predictable prospecting",
+        dash_o4: "Model that can reach millions/month",
+        dash_del_title: "📋 Target Deliverables",
+        dash_d1: "Professional Pitch Deck",
+        dash_d2: "Business Bible",
+        dash_d3: "Documented irresistible offer",
+        dash_d4: "Complete avatar profile",
+        dash_d5: "Sales and objection scripts",
+        dash_d6: "Go-To-Market Strategy",
+        // Discovery
+        disc_title: "Discovery — Key Questions",
+        disc_sub: "Answer these questions to define the strategy.",
+        btn_save: "Save Answers",
+        btn_export: "Export for Claude",
+        btn_clear: "Clear All",
+        // Deliverables
+        del_title: "Deliverables",
+        del_sub: "Documents we'll build. They unlock as we progress.",
+        del_bible: "Business Bible",
+        del_bible_desc: "Master document with vision, mission, values, business model, processes and structure.",
+        del_avatar: "Avatar / ICP Profile",
+        del_avatar_desc: "Detailed ideal client profile: industry, size, pain, budget, decision maker.",
+        del_offer: "Irresistible Offer",
+        del_offer_desc: "Packaged service with pricing, scope, guarantees and value stack.",
+        del_pitch: "Pitch Deck",
+        del_pitch_desc: "Professional presentation for investors, partners and enterprise clients.",
+        del_scripts: "Sales Scripts",
+        del_scripts_desc: "Scripts for cold call, cold email, discovery call and closing. Objection handling.",
+        del_gtm: "Go-To-Market Plan",
+        del_gtm_desc: "Launch strategy, channels, target metrics and timeline.",
+        del_phase4: "Phase 4",
+        del_phase4b: "Phase 4",
+        del_phase4c: "Phase 4",
+        del_phase5: "Phase 5",
+        del_done: "Completed",
+        del_done2: "Completed",
+        // Assets
+        assets_title: "Tech Assets",
+        assets_sub: "Black Wolf's proprietary technology assets",
+        asset_cyber: "Cybersecurity System",
+        asset_cyber_desc: "Monitoring, blocking and detection with integrated AI",
+        asset_portal: "Client Portal (BI/CRM)",
+        asset_portal_desc: "Metrics dashboard, CRM and ERP with Fireflies integration",
+        asset_outbound: "Cold Outbound System",
+        asset_outbound_desc: "Automated outbound prospecting system",
+        asset_coach: "AI Sales Coach",
+        asset_coach_desc: "Commercial AI for role plays and live call assistance",
+        asset_fire_desc: "Recording, transcription and call analysis",
+        asset_custom: "Custom Dev Capability",
+        asset_custom_desc: "Ability to build any solution: AI, BI, Cyber, Apps",
+        asset_op: "Operational", asset_op2: "Operational", asset_op3: "Operational",
+        asset_dev: "In development", asset_dev2: "In development",
+        // Team
+        team_title: "Team",
+        team_sub: "Current Black Wolf team structure",
+        team_ceo: "👤 CEO (You)",
+        team_ceo1: "Business strategy, vision and general direction",
+        team_ceo2: "Sales and client closing (Spanish and English)",
+        team_ceo3: "Product development and optimization",
+        team_ceo4: "Technical support to CTO when needed",
+        team_ceo5: "Organic LinkedIn and personal positioning",
+        team_cto1: "Technical architecture and system development",
+        team_cto2: "Implementation and deployment for each client",
+        team_cto3: "AI agent and automation development",
+        team_cto4: "Platform maintenance and updates",
+        team_cto5: "Deployment playbook standardization",
+        team_bd: "💼 Business Development (BD)",
+        team_bd1: "Prospecting and lead generation (Bulgarian market)",
+        team_bd2: "Cold calling and outbound sequences in Bulgarian",
+        team_bd3: "Pipeline management and lead follow-up",
+        team_bd4: "Lead qualification before passing to CEO",
+        team_bd5: "Business relationships and local networking",
+        nav_roadmap: "Operational Roadmap",
+        // Roadmap
+        road_title: "Operational Roadmap — Execution Plan",
+        road_sub: "What each team member needs to do, week by week, to start prospecting",
+        road_w1: "📅 WEEK 1 — Setting up the machine",
+        road_w1_ceo: "CEO", road_w1_cto: "CTO", road_w1_bd: "BD",
+        rw1c1: "Finalize offer and pricing (done)",
+        rw1c2: "Prepare sales pitch: cold call script (2 min) + discovery call script (30 min)",
+        rw1c3: "Prepare live BI dashboard demo — make it impressive",
+        rw1c4: "Create optimized LinkedIn profile as Black Wolf CEO",
+        rw1c5: "Validate Bulgaria lead list with BD",
+        rw1t1: "Standardize deployment: create step-by-step playbook for new client setup",
+        rw1t2: "Prepare base template environment to clone for each client",
+        rw1t3: "Ensure the BI dashboard demo works flawlessly",
+        rw1t4: "Document internal system SOPs",
+        rw1t5: "Continue Kingly delivery (priority #1)",
+        rw1b1: "Clean and segment the list of 1,474 Bulgaria leads",
+        rw1b2: "Prioritize leads by grant size (highest to lowest)",
+        rw1b3: "Verify phones and emails for top 200 leads",
+        rw1b4: "Prepare message templates in Bulgarian (LinkedIn + Email)",
+        rw1b5: "Set up outbound tools (internal CRM, tracking)",
+        road_w2: "🔥 WEEK 2 — Prospecting begins",
+        road_w2_ceo: "CEO", road_w2_cto: "CTO", road_w2_bd: "BD",
+        rw2c1: "Start ES/EN prospecting: 10-15 contacts/day (LinkedIn + Email)",
+        rw2c2: "Practice cold call pitch until it's natural",
+        rw2c3: "First organic LinkedIn post (industrial digitalization)",
+        rw2c4: "Review first contacted Bulgaria leads with BD",
+        rw2c5: "Follow up with Kingly — document results for case study",
+        rw2t1: "Complete deployment playbook — must be executable as a checklist",
+        rw2t2: "Kingly delivery: push forward as much as possible",
+        rw2t3: "Prepare demo version of the system for calls",
+        rw2t4: "Automate whatever possible in client onboarding",
+        rw2b1: "Launch first batch: 30-40 leads/week in Bulgaria",
+        rw2b2: "Day 1: LinkedIn connection + message to 30-40 leads",
+        rw2b3: "Day 3: Email to the same leads",
+        rw2b4: "Day 5-7: Cold call those who didn't respond",
+        rw2b5: "Log everything in CRM: responses, objections, interest",
+        road_w34: "📈 WEEKS 3-4 — First meetings and adjustments",
+        road_w34_ceo: "CEO", road_w34_cto: "CTO", road_w34_bd: "BD",
+        rw34c1: "Do first discovery calls with qualified leads",
+        rw34c2: "Show live dashboard demo — let the prospect imagine",
+        rw34c3: "Collect objections and adjust pitch based on feedback",
+        rw34c4: "Continue organic LinkedIn: 3-4 posts/week",
+        rw34c5: "Goal: schedule 4-6 discovery calls in these 2 weeks",
+        rw34t1: "Kingly delivery: close to completion",
+        rw34t2: "Be available for technical demos if a lead requests it",
+        rw34t3: "Iterate the system based on feedback from CEO's calls",
+        rw34t4: "Start creating base onboarding videos (reusable)",
+        rw34b1: "Continue 30-40 new leads/week + follow-ups from previous weeks",
+        rw34b2: "Qualify leads: pass interested ones to CEO for call",
+        rw34b3: "Analyze which messages/angles work best, optimize templates",
+        rw34b4: "Weekly metrics report: contacted, responses, meetings scheduled",
+        road_m2: "🎯 MONTH 2 — First closes",
+        road_m2_ceo: "CEO", road_m2_cto: "CTO", road_m2_bd: "BD",
+        rm2c1: "Close first 1-2 new clients",
+        rm2c2: "Do closing calls: present formal offer, handle objections",
+        rm2c3: "Sign contracts and onboard new clients",
+        rm2c4: "Start documenting Kingly case study (before/after)",
+        rm2c5: "Keep prospecting: never stop filling the pipeline",
+        rm2t1: "Complete Kingly delivery",
+        rm2t2: "Start deploying new clients using the playbook",
+        rm2t3: "Measure real deployment time — optimize bottlenecks",
+        rm2t4: "Develop system improvements based on real feedback",
+        rm2b1: "Volume: increase to 50+ contacts/week if capacity allows",
+        rm2b2: "Continue the cycle: LinkedIn → Email → Cold Call → Follow-up",
+        rm2b3: "Report: actual conversion rates vs expected, adjust",
+        rm2b4: "Start exploring leads outside Bulgaria (Spain) if capacity allows",
+        road_m3: "🚀 MONTH 3 — Machine running",
+        road_m3_ceo: "CEO", road_m3_cto: "CTO", road_m3_bd: "BD",
+        rm3c1: "Goal: 3-4 active paying clients",
+        rm3c2: "Publish Kingly case study (web + LinkedIn)",
+        rm3c3: "Use case study in all sales calls",
+        rm3c4: "Evaluate if first hire is needed (junior dev or SDR)",
+        rm3c5: "Review business metrics: MRR, CAC, churn, pipeline",
+        rm3t1: "Deliver new clients in parallel (2-3 simultaneous)",
+        rm3t2: "Refine base system: each new client should be faster than the last",
+        rm3t3: "Start creating reusable client SOPs (videos, guides)",
+        rm3t4: "Monitor AI token costs — optimize where necessary",
+        rm3b1: "Constant pipeline: minimum 30-50 new leads/week",
+        rm3b2: "The cycle should be refined: know which messages convert",
+        rm3b3: "Pass qualified leads to CEO systematically",
+        rm3b4: "Explore second market (Spain) with new leads",
+        road_kpi_title: "📊 Weekly KPIs by Role",
+        road_kpi_ceo: "CEO", road_kpi_cto: "CTO", road_kpi_bd: "BD",
+        rkpi_c1: "Discovery calls/week: 2-4",
+        rkpi_c2: "Closes/month: 1-2",
+        rkpi_c3: "LinkedIn posts/week: 3-4",
+        rkpi_c4: "Active pipeline: 10+ leads in follow-up",
+        rkpi_t1: "Clients in deployment: max 2-3 simultaneous",
+        rkpi_t2: "Time per deployment: target <4 weeks",
+        rkpi_t3: "Bugs/issues resolved: <48h",
+        rkpi_t4: "SOPs documented: 1-2 new/week",
+        rkpi_b1: "Leads contacted/week: 30-50",
+        rkpi_b2: "Responses obtained/week: 5-10",
+        rkpi_b3: "Meetings scheduled/week: 2-4",
+        rkpi_b4: "Weekly report to CEO: Friday",
+        // Niche
+        niche_title: "Defined Niche",
+        niche_sub: "The target market where Black Wolf will dominate",
+        niche_main: "Manufacturing / Industrial SMEs in Europe",
+        niche_revenue: "Revenue",
+        niche_year: "year",
+        niche_employees: "Employees",
+        niche_people: "people",
+        niche_geo: "Geography",
+        niche_decision: "Decision Maker",
+        niche_owner: "Owner / CEO direct",
+        niche_why_title: "🎯 Why this niche",
+        niche_w1: "We already have 2 clients and real traction",
+        niche_w2: "Universal pain: operational chaos, no systems",
+        niche_w3: "Owner decides fast, no committees",
+        niche_w4: "1,474 Bulgaria leads with approved grants",
+        niche_w5: "Low modern tech competition in the segment",
+        niche_w6: "High ticket justifiable by measurable ROI",
+        niche_comp_title: "💥 Current Competition",
+        niche_c1: "Odoo / Generic ERPs: complex, unused, no real support",
+        niche_c2: "Big consultancies (Accenture, Deloitte): very expensive, 6-12 months delivery",
+        niche_c3: "Freelancers / local agencies: separate pieces, no integral vision",
+        niche_c4: "Internal IT guy: can't cover everything, stuck in operations",
+        niche_c5: "<strong>Black Wolf: all-in-one, 5 weeks, with cyber + AI included = blue ocean</strong>",
+        niche_tam_title: "📈 Market Size (estimate)",
+        niche_t1: "<strong>Bulgaria:</strong> 1,474 companies with digitalization grants (list available)",
+        niche_t2: "<strong>Spain:</strong> ~25,000 manufacturing SMEs in the 3-30M range",
+        niche_t3: "<strong>Europe:</strong> ~500,000+ industrial SMEs in the target range",
+        niche_t4: "Capturing 0.01% of the European market = 50 clients = 250K+ MRR potential",
+        // Avatar
+        avatar_title: "Avatar / ICP — Complete Profile",
+        avatar_sub: "The exact ideal client profile for Black Wolf",
+        avatar_name: "The Industrial Owner",
+        avatar_desc: "Owner/CEO of manufacturing SME, 30-55 years old, has run his factory for years",
+        av_demo_title: "👤 Demographic Profile",
+        av_d1: "<strong>Age:</strong> 30-55 years",
+        av_d2: "<strong>Role:</strong> Owner / CEO / Founder",
+        av_d3: "<strong>Company:</strong> Manufacturing (textile, furniture, metal, plastic, food...)",
+        av_d4: "<strong>Revenue:</strong> 3M-30M EUR/year",
+        av_d5: "<strong>Employees:</strong> 20-200",
+        av_d6: "<strong>Tech level:</strong> Low-medium. Uses Excel, Gmail, some scattered software",
+        av_d7: "<strong>Gets clients:</strong> Events, contacts, word of mouth, years of positioning",
+        av_pain_title: "😡 Main Pain Points",
+        av_p1: "<strong>Operational chaos:</strong> everything runs on Excel, paper, WhatsApp, word of mouth",
+        av_p2: "<strong>Doesn't know what's happening:</strong> no metrics, no KPIs, no visibility",
+        av_p3: "<strong>Employees without control:</strong> doesn't know if they perform, they do the wrong tasks",
+        av_p4: "<strong>Trapped in operations:</strong> CEO does tasks he shouldn't",
+        av_p5: "<strong>Loses deals:</strong> no follow-ups, no CRM, leads go cold",
+        av_p6: "<strong>Vulnerable to hacking:</strong> no real cybersecurity",
+        av_p7: "<strong>Limited internal IT:</strong> one tech guy who can't cover everything",
+        av_tried_title: "❌ Has tried before",
+        av_t1: "Odoo / Generic ERPs → too complex, doesn't use it",
+        av_t2: "Standalone apps → don't integrate, data silos",
+        av_t3: "Internal IT guy → overwhelmed, stuck in operations",
+        av_t4: "Consultancies → expensive, slow, don't understand the business",
+        av_t5: "<strong>Result: still on Excel and chaos</strong>",
+        av_cost_title: "💰 Cost of NOT acting (per month)",
+        av_co1: "<strong>4-5 unnecessary employees:</strong> 8,000 - 15,000 EUR/month",
+        av_co2: "<strong>Lost deals (no follow-up):</strong> 10-20% potential revenue",
+        av_co3: "<strong>CEO time in operations:</strong> incalculable (opportunity cost)",
+        av_co4: "<strong>Manual errors:</strong> duplicated data, misprocessed orders",
+        av_co5: "<strong>Cyber risk:</strong> a hack can cost 50-500K EUR",
+        av_co6: "<strong>ESTIMATED TOTAL: 15,000 - 40,000 EUR/month in losses</strong>",
+        av_talk_title: "💬 How they talk (their words)",
+        av_w1: '"I want to know what\'s happening in my company"',
+        av_w2: '"I need everything in one place"',
+        av_w3: '"I don\'t know what my employees are actually doing"',
+        av_w4: '"We tried Odoo but we don\'t use it"',
+        av_w5: '"I have no time for anything, I\'m involved in everything"',
+        av_w6: '"I need order and control"',
+        av_contact_title: "📩 How to reach them",
+        av_ct1: "<strong>Channel #1:</strong> Direct mobile phone (cold call)",
+        av_ct2: "<strong>Channel #2:</strong> LinkedIn",
+        av_ct3: "<strong>Channel #3:</strong> Email (personal/company Gmail)",
+        av_ct4: "<strong>Channel #4:</strong> Physical letter (brutal differentiator)",
+        av_ct5: "<strong>In-person:</strong> Industrial events, fairs, chambers of commerce",
+        av_ct6: "<strong>Key:</strong> Multichannel, the phone is what closes",
+        // Offer
+        offer_title: "Irresistible Offer",
+        offer_sub: "Black Wolf's packaged system for industrial SMEs",
+        offer_model: "Business Model: Monthly Recurring License (MRR)",
+        of_m1: "Client pays a fixed monthly fee for full system access",
+        of_m2: "Stops paying = loses access. No lock-in, but no system",
+        of_m3: "Includes constant updates, improvements and cutting-edge technology",
+        of_m4: "Black Wolf acts as the client's outsourced technology department",
+        of_m5: "All tiers include ALL modules and AI agents — what changes is the size",
+        offer_includes: "⚡ What the Black Wolf license includes",
+        of_sys: "All-in-One System",
+        of_s1: "Business Intelligence: dashboards, metrics, real-time KPIs",
+        of_s2: "CRM: lead management, clients, automatic follow-ups",
+        of_s3: "ERP: orders, inventory, operational processes",
+        of_s4: "Cybersecurity: monitoring, blocking, AI-powered detection",
+        of_s5: "AI Agents: sales, operations, support, fulfillment, analytics",
+        of_svc: "Service included",
+        of_sv1: "Complete onboarding (5 weeks implementation)",
+        of_sv2: "Training platform with videos and SOPs by role",
+        of_sv3: "24/7 AI support agent for team questions",
+        of_sv4: "Live onboarding sessions (group + individual)",
+        of_sv5: "On-demand sessions when the client needs them",
+        of_sv6: "Continuous technology and agent updates",
+        offer_plans: "Plans / Tiers",
+        tier_month: "month", tier_month2: "month", tier_month3: "month",
+        tier_rec: "Recommended",
+        tier_s_users: "Up to 25 users",
+        tier_s1: "Complete All-in-One system",
+        tier_s2: "All AI agents included",
+        tier_s3: "Onboarding: 2 live sessions",
+        tier_s4: "Support: 24/7 AI agent",
+        tier_s5: "Training platform",
+        tier_s6: "Updates included",
+        tier_s_range: "Companies 1-5M revenue",
+        tier_p_users: "Up to 75 users",
+        tier_p1: "Everything in Starter +",
+        tier_p2: "Custom AI agents for their operations",
+        tier_p3: "Onboarding: 4 live sessions",
+        tier_p4: "Support: AI agent + on-demand sessions",
+        tier_p5: "Executive CEO dashboard",
+        tier_p6: "Quarterly optimization review",
+        tier_p_range: "Companies 5-15M revenue",
+        tier_e_users: "Unlimited users",
+        tier_e1: "Everything in Pro +",
+        tier_e2: "Unlimited custom AI agents",
+        tier_e3: "In-person onboarding (if applicable)",
+        tier_e4: "Priority support + dedicated account manager",
+        tier_e5: "Custom integrations with existing systems",
+        tier_e6: "Monthly optimization review with CEO",
+        tier_e_range: "Companies 15M+ revenue",
+        roi_title: "💰 Value Stack — Why it's irresistible",
+        roi_cost_title: "What it costs NOT to have Black Wolf",
+        roi_c1: "4-5 unnecessary employees: 8,000-15,000 EUR/month",
+        roi_c2: "Lost deals (no follow-up): 10-20% revenue",
+        roi_c3: "CEO trapped in operations: incalculable opportunity cost",
+        roi_c4: "Hacking risk: 50,000-500,000 EUR per incident",
+        roi_c5: "Manual errors: misprocessed orders, lost data",
+        roi_c6: "TOTAL: 15,000-40,000 EUR/month in losses",
+        roi_get_title: "What you get with Black Wolf",
+        roi_g1: "Total business visibility in one dashboard",
+        roi_g2: "20-30% reduction in operational staff",
+        roi_g3: "+10-20% revenue through commercial optimization",
+        roi_g4: "CEO free to work ON the business, not in operations",
+        roi_g5: "Real cybersecurity with AI monitoring 24/7",
+        roi_g6: "AI agents doing what employees used to do",
+        roi_g7: "ROI: pay 4.5-8K, save/generate 15-40K+",
+        pitch_label: "The pitch in one sentence",
+        pitch_text: '"We eliminate your company\'s chaos in 5 weeks. An AI-powered system that centralizes your operations, protects your business and gives you total control to scale."',
+        notes_title: "📝 Session Notes",
+        btn_save_notes: "Save",
+        btn_close: "Close",
+        // Analysis
+        analysis_title: "Business Analysis",
+        analysis_sub: "Strategic evaluation of the Black Wolf model",
+        an_ocean_title: "🌊 Blue Ocean — Why this market is unique",
+        an_ocean_intro: "It's not that nobody sells technology to industrial SMEs. What nobody does is the complete combination:",
+        an_oc1: "<strong>Real all-in-one</strong> (BI + CRM + ERP + Cyber + AI) in a single login — others sell separate pieces",
+        an_oc2: "<strong>5-week delivery</strong> — consultancies take 6-12 months",
+        an_oc3: "<strong>Accessible license</strong> (4.5-8K/month) — consultancies charge 100-500K setup",
+        an_oc4: "<strong>Real integrated AI</strong> — traditional ERPs don't have real AI",
+        an_oc5: "<strong>Owner-oriented</strong> — ERPs are designed for IT, not for the CEO who wants to understand his business in 30 seconds",
+        an_oc_conclusion: "The blue ocean is not the technology itself — it's the combination + segment + price + speed. That doesn't exist today.",
+        an_pay_title: "💰 Will they pay these prices? — ROI Math",
+        an_pay_intro: "Example: factory owner, 5M revenue, 40 employees:",
+        an_pay1: "<strong>Staff savings</strong> (4 employees x 1,500-2,000 EUR): 6,000-8,000 EUR/month",
+        an_pay2: "<strong>Revenue increase</strong> (+10% on 5M): ~3,300 EUR/month",
+        an_pay3: "<strong>Hack prevention:</strong> 50-500K EUR not lost",
+        an_pay4: "<strong>Total value generated: 10,000-15,000+ EUR/month</strong>",
+        an_pay_roi_label: "ROI for the client",
+        an_pay_roi_desc: "Pays 4,500 EUR/month → Saves/generates 10,000-15,000+ EUR/month",
+        an_pay_key: "Key: the problem is not the price. The problem is the owner doesn't know how much his chaos costs. Your job in the sale is to show him.",
+        an_str_title: "💪 Model Strengths",
+        an_str1: "Unique positioning: all-in-one that nobody else offers in the segment",
+        an_str2: "Fast delivery (5 weeks) vs competition (6-12 months)",
+        an_str3: "Very low delivery cost (~200 EUR/month + team hours)",
+        an_str4: "Margins >80% on the service",
+        an_str5: "Predictable MRR with license model",
+        an_str6: "Direct decision maker (owner) = short sales cycle",
+        an_str7: "100% remote = entire European market",
+        an_str8: "Immediate pipeline: 1,474 Bulgaria leads with grants",
+        an_risk_title: "⚠ Risks & Mitigation",
+        an_risk1: "<strong>AI token costs:</strong> Can eat 10-20% of revenue. Mitigation: optimize prompts, cache responses, costs drop every 6 months",
+        an_risk2: "<strong>Small team delivery:</strong> 3 new clients/month = CTO collapses. Mitigation: standardize deployment with playbooks and templates",
+        an_risk3: "<strong>No case study:</strong> Brake for cold closing. Mitigation: Kingly will be case #1 in 2-3 months. Until then, sell with live demos",
+        an_risk4: "<strong>CTO dependency:</strong> If CTO goes down, everything stops. Mitigation: document everything, internal SOPs, hire first dev month 4-6",
+        an_proj_title: "📈 Revenue Projection",
+        an_proj_m3: "Month 3", an_proj_m3_desc: "3-4 clients",
+        an_proj_m6: "Month 6", an_proj_m6_desc: "8-10 clients",
+        an_proj_m9: "Month 9", an_proj_m9_desc: "15-18 clients",
+        an_proj_m12: "Month 12", an_proj_m12_desc: "25-30 clients",
+        an_verdict_label: "Verdict",
+        an_verdict: "Viable business with real potential for 100K+ MRR in 12 months. The risk is not in the market or the product — it's in execution and not dying in delivery when you start closing.",
+        // Go-To-Market
+        gtm_title: "Go-To-Market Strategy",
+        gtm_sub: "Client acquisition plan by phases",
+        gtm_p1_title: "🔥 Phase 1: Direct Outbound Only (Months 1-3)",
+        gtm_p1_sub: "Cold call + LinkedIn + Email. Nothing else.",
+        gtm_p1_why: "Why only outbound",
+        gtm_p1w1: "No runway to wait for SEO (6-12 months)",
+        gtm_p1w2: "Paid media for B2B industrial with 4.5-8K ticket doesn't work well",
+        gtm_p1w3: "You need fast market feedback: objections, language, pitch",
+        gtm_p1w4: "1,474 Bulgaria leads with grants = 6+ months of pipeline",
+        gtm_p1_seq: "Contact sequence",
+        gtm_sq1: "<strong>Day 1 — LinkedIn:</strong> Connection + short message. Don't sell, create curiosity",
+        gtm_sq2: "<strong>Day 3 — Email:</strong> Pain data + proposal. Short and direct",
+        gtm_sq3: "<strong>Day 5-7 — Cold Call:</strong> Direct call. This is what closes",
+        gtm_sq4: "<strong>Day 10, 15, 21 — Follow-up:</strong> Repeat with different angles",
+        gtm_conv_title: "📊 Expected Conversion Ratios",
+        gtm_conv_bg: "Bulgaria (with grants)",
+        gtm_cb1: "LinkedIn response: 15-25%",
+        gtm_cb2: "Email open rate: 40-50%",
+        gtm_cb3: "Conversion to meeting: 5-8% of total contacted",
+        gtm_cb4: "Meeting to close: 20-30% (no case study) / 30-40% (with case study)",
+        gtm_cb5: "From 100 leads: 5-8 meetings → 1-2 closes",
+        gtm_conv_cold: "Cold market (no grants)",
+        gtm_cc1: "Cold call connection: 5-10%",
+        gtm_cc2: "Of those who connect, meeting: 10-20%",
+        gtm_cc3: "Meeting to close: 20-30%",
+        gtm_cc4: "From 200-300 calls: 1 close",
+        gtm_pipeline_calc: "With 1,474 Bulgaria leads + 30-40 contacts/week = <span style='color:var(--green);'>9-12 months of pipeline</span> with Bulgaria alone",
+        gtm_p2_title: "📝 Phase 2: Organic Content (Months 3-6)",
+        gtm_p2_sub: "When you have 3-5 clients and a case study",
+        gtm_p2_1: "<strong>CEO's organic LinkedIn:</strong> Posts about industrial digitalization, real cases, sector data. 3-4 posts/week. Builds authority",
+        gtm_p2_2: "<strong>Professional website:</strong> With case study, clear offer, contact form",
+        gtm_p2_3: "<strong>Basic SEO:</strong> Articles about 'factory digitalization', 'manufacturing ERP', 'industrial cybersecurity'. Low competition, high intent keywords",
+        gtm_p3_title: "🚀 Phase 3: Scale (Months 6-12)",
+        gtm_p3_sub: "If the numbers justify it",
+        gtm_p3_1: "<strong>LinkedIn Ads:</strong> Targeting by industry, size, role (CEO/Owner). Expensive (15-30 EUR/click) but precise targeting. With 4.5K/month ticket, 2-3K CAC is affordable",
+        gtm_p3_2: "<strong>Google Ads:</strong> Specific keywords ('manufacturing ERP', 'factory software'). Few searches but high intent",
+        gtm_p3_3: "<strong>Industrial events & fairs:</strong> Booth at fairs. 10-20 qualified leads per event",
+        gtm_not_title: "❌ What NOT to do",
+        gtm_no1: "<strong>No Instagram, no TikTok, no Facebook Ads</strong> — Your client doesn't look for ERPs there",
+        gtm_no2: "<strong>No massive content marketing at the start</strong> — No time or resources",
+        gtm_no3: "<strong>No webinars until you have a case study</strong> — Without results to show, it's smoke",
+        gtm_no4: "<strong>Don't lower prices to close</strong> — Better to lose a client than train the market that you're cheap",
+        gtm_now_title: "⚡ Immediate Actions (this week)",
+        gtm_now1: "<strong>1.</strong> Close Kingly flawlessly — It's your first case study. Document everything: before/after, metrics, video testimonial",
+        gtm_now2: "<strong>2.</strong> Standardize deployment — Make setting up a new client a playbook, not starting from scratch",
+        gtm_now3: "<strong>3.</strong> Attack Bulgaria first — Lead list + grants = easiest money in the market",
+        gtm_now4: "<strong>4.</strong> Don't sell cyber as the hook — Sell BI and control. Cyber is the bonus that blows their mind after",
+        gtm_now5: "<strong>5.</strong> Prepare the live demo — The BI dashboard is your weapon. Make it impressive",
+        gtm_summary_title: "📋 Executive Summary",
+        gtm_sum_q1: "Blue ocean?", gtm_sum_a1: "Yes — the combination is unique",
+        gtm_sum_q2: "Will they pay?", gtm_sum_a2: "Yes — clear 3-4x ROI",
+        gtm_sum_q3: "Main channel?", gtm_sum_a3: "Cold call + LinkedIn + Email",
+        gtm_sum_q4: "Paid media now?", gtm_sum_a4: "No — in 6 months",
+        gtm_sum_q5: "SEO now?", gtm_sum_a5: "No — in 3 months",
+        gtm_sum_q6: "Biggest risk?", gtm_sum_a6: "Delivery with small team",
+        gtm_sum_q7: "Time to first results?", gtm_sum_a7: "4-8 weeks from when you start",
+        // AI Agents
+        nav_agents: "AI Agents",
+        badge_done_ai: "Complete",
+        ai_title: "Internal AI Agents",
+        ai_subtitle: "Autonomous agent system to scale Black Wolf from 3 people to 50+ capacity without hiring. Each agent operates 24/7 and connects to the central ecosystem.",
+        ai_m1_label: "Planned Agents", ai_m1_sub: "Operational in 6 months",
+        ai_m2_label: "Automated Hours", ai_m2_sub: "Hours/week saved",
+        ai_m3_label: "Equivalent Capacity", ai_m3_sub: "Equivalent employees",
+        ai_m4_label: "Cost vs Team", ai_m4_sub: "Savings vs hiring",
+        ai_map_title: "Agent Map by Area",
+        ai_a1_name: "Prospector Agent", ai_a1_priority: "HIGH PRIORITY",
+        ai_a1_desc: "Automatically finds and enriches manufacturing leads. Scrapes directories, LinkedIn, grant databases. Generates clean lists with email, phone, size and sector.",
+        ai_a1_t1: "Web Scraping", ai_a1_t2: "Data Enrichment", ai_a1_t3: "Lead Scoring",
+        ai_a1_output: "Output: 500+ qualified leads/week",
+        ai_a2_name: "Qualifier Agent", ai_a2_priority: "HIGH PRIORITY",
+        ai_a2_desc: "Analyzes each lead and scores against ICP (size, sector, revenue, digital level). Filters those that DON'T fit. Prioritizes those with active grants or visible pain.",
+        ai_a2_t1: "ICP Matching", ai_a2_t2: "ML Scoring", ai_a2_t3: "Auto-Research",
+        ai_a2_output: "Output: Top 50 prioritized leads/week",
+        ai_a3_name: "Outreach Agent", ai_a3_priority: "HIGH PRIORITY",
+        ai_a3_desc: "Executes automatic multichannel sequences: personalized emails, LinkedIn messages, and prepares cold call scripts. Each message adapted to the lead's context.",
+        ai_a3_t1: "Email Sequences", ai_a3_t2: "LinkedIn Auto", ai_a3_t3: "Call Scripts",
+        ai_a3_output: "Output: 200+ contacts/week on autopilot",
+        ai_a4_name: "Sales Coach Agent", ai_a4_priority: "MEDIUM PRIORITY",
+        ai_a4_desc: "Listens to sales calls (via Fireflies), analyzes objections, suggests rebuttals in real-time, and generates post-call reports with personalized coaching.",
+        ai_a4_t1: "Call Analysis", ai_a4_t2: "Objection Handling", ai_a4_t3: "Performance Reports",
+        ai_a4_output: "Output: +30% conversion rate on calls",
+        ai_a5_name: "Deployment Agent", ai_a5_priority: "MEDIUM PRIORITY",
+        ai_a5_desc: "Automates new client setup: creates instance, configures dashboards, migrates data, activates modules. Reduces onboarding from 5 weeks to 2 weeks.",
+        ai_a5_t1: "Auto-Setup", ai_a5_t2: "Data Migration", ai_a5_t3: "Config Templates",
+        ai_a5_output: "Output: Onboarding 60% faster",
+        ai_a6_name: "24/7 Support Agent", ai_a6_priority: "MEDIUM PRIORITY",
+        ai_a6_desc: "Intelligent chatbot that resolves 80% of tickets without human intervention. Knows the platform, client data and their configuration. Only escalates complex issues.",
+        ai_a6_t1: "Ticket Resolution", ai_a6_t2: "Knowledge Base", ai_a6_t3: "Smart Escalation",
+        ai_a6_output: "Output: 80% tickets resolved without human",
+        ai_a7_name: "Reporting Agent", ai_a7_priority: "PHASE 2",
+        ai_a7_desc: "Generates automatic reports for clients: production KPIs, financial, cyber risk. Weekly/monthly delivery without the team touching anything. Reduces churn by 40%.",
+        ai_a7_t1: "Auto Reports", ai_a7_t2: "KPI Alerts", ai_a7_t3: "Client Comms",
+        ai_a7_output: "Output: Automatic reports for each client",
+        ai_a8_name: "Content Agent", ai_a8_priority: "PHASE 2",
+        ai_a8_desc: "Generates marketing content: LinkedIn posts, case studies, newsletters, white papers. Uses real client data (anonymized) to create authoritative content.",
+        ai_a8_t1: "LinkedIn Posts", ai_a8_t2: "Case Studies", ai_a8_t3: "Newsletters",
+        ai_a8_output: "Output: 20+ content pieces/week",
+        ai_roadmap_title: "Implementation Roadmap",
+        ai_phase1_title: "Month 1-2: Sales", ai_phase1_desc: "Prospector + Qualifier + Outreach. The 3 agents that generate pipeline. Goal: sales system on autopilot that fills the calendar with calls.",
+        ai_phase1_impact: "Impact: From 0 to 50+ qualified calls/month",
+        ai_phase2_title: "Month 3-4: Operations", ai_phase2_desc: "Sales Coach + Deployment + Support. The agents that optimize conversion and reduce delivery and post-sale support costs.",
+        ai_phase2_impact: "Impact: 2x delivery capacity without hiring",
+        ai_phase3_title: "Month 5-6: Scale", ai_phase3_desc: "Reporting + Content. The agents that retain clients and generate organic inbound. Reduce churn and build brand authority.",
+        ai_phase3_impact: "Impact: Churn -40%, inbound leads +300%",
+        ai_multiplier_title: "The Multiplier: Why agents are the path to 1M/month",
+        ai_without_title: "Without Agents (traditional model)",
+        ai_without_desc: "- 3 people = max 10-15 clients\n- Need to hire to grow\n- Cost per employee: 2,500-4,000 EUR/month\n- For 100 clients you need 20-30 people\n- Team cost: 60,000-120,000 EUR/month\n- Margin compresses to 30-40%\n- Linear and slow growth",
+        ai_with_title: "With Agents (Black Wolf model)",
+        ai_with_desc: "- 3 people + 8 agents = 50-100 clients\n- Agents scale at no marginal cost\n- Agent cost: 500-1,000 EUR/month (tokens + infra)\n- For 100 clients you need 5-8 people\n- Team + agents cost: 15,000-25,000 EUR/month\n- Margin stays at 70-80%\n- Exponential growth",
+        ai_conclusion: "With agents: 100 clients x 6,500 EUR/month = 650,000 EUR MRR with a team of 5-8 people and 75% margins",
+    }
+};
+
+let currentLang = 'es';
+
+function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('bw_lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+
+    if (lang === 'es') {
+        // Restore originals
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            if (el._originalHTML !== undefined) el.innerHTML = el._originalHTML;
+        });
+    } else {
+        const dict = i18n[lang];
+        if (!dict) return;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key] !== undefined) {
+                if (el._originalHTML === undefined) el._originalHTML = el.innerHTML;
+                el.innerHTML = dict[key];
+            }
+        });
+    }
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showPage(pageId, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    if (el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════
+// QUESTIONS SYSTEM
+// ══════════════════════════════════════
+const TOTAL_QUESTIONS = 18;
+
+const questionsData = [
+    { block: "Bloque 1 — Validacion de Mercado y Traccion", blockEn: "Block 1 — Market Validation & Traction" },
+    { q: 1, text: "Tus 2 clientes de manufactura: que tamano tienen? Facturacion anual, empleados. Cuanto os pagan? Cuanto tiempo llevas con ellos?", textEn: "Your 2 manufacturing clients: how big are they? Annual revenue, employees. How much do they pay you? How long have you been with them?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { q: 2, text: "Como os llegaron estos clientes? Referidos, outbound, inbound?", textEn: "How did these clients come to you? Referrals, outbound, inbound?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { q: 3, text: "Cual es el pain point mas doloroso que resolveis para ellos?", textEn: "What is the most painful problem you solve for them?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { q: 4, text: "Teneis otros clientes ademas de manufactura?", textEn: "Do you have other clients besides manufacturing?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { block: "Bloque 2 — Capacidad y Restricciones", blockEn: "Block 2 — Capacity & Constraints" },
+    { q: 5, text: "Cuanto tiempo os lleva un delivery completo?", textEn: "How long does a complete delivery take you?", tag: "capacidad", tagLabel: "Capacidad", tagLabelEn: "Capacity" },
+    { q: 6, text: "Cual es vuestro coste real de delivery?", textEn: "What is your real delivery cost?", tag: "capacidad", tagLabel: "Capacidad", tagLabelEn: "Capacity" },
+    { q: 7, text: "Cuantos clientes podriais servir simultaneamente?", textEn: "How many clients could you serve simultaneously?", tag: "capacidad", tagLabel: "Capacidad", tagLabelEn: "Capacity" },
+    { block: "Bloque 3 — Ambicion y Timeline", blockEn: "Block 3 — Ambition & Timeline" },
+    { q: 8, text: "Cual es vuestro objetivo de revenue en 12 meses?", textEn: "What is your revenue target in 12 months?", tag: "ambicion", tagLabel: "Ambicion", tagLabelEn: "Ambition" },
+    { q: 9, text: "Teneis runway para aguantar 3-6 meses?", textEn: "Do you have runway for 3-6 months?", tag: "ambicion", tagLabel: "Ambicion", tagLabelEn: "Ambition" },
+    { q: 10, text: "Estais dispuestos a decir NO a proyectos custom que no encajen?", textEn: "Are you willing to say NO to custom projects that don't fit?", tag: "ambicion", tagLabel: "Ambicion", tagLabelEn: "Ambition" },
+    { block: "Bloque 4 — Producto y Posicionamiento", blockEn: "Block 4 — Product & Positioning" },
+    { q: 11, text: "Del sistema que montais, que incluye exactamente?", textEn: "What does the system you build include exactly?", tag: "producto", tagLabel: "Producto", tagLabelEn: "Product" },
+    { q: 12, text: "Que parte del sistema genera mas WOW en el cliente?", textEn: "What part of the system generates the most WOW?", tag: "producto", tagLabel: "Producto", tagLabelEn: "Product" },
+    { q: 13, text: "Cuanto paga Kingly (4.5K/mes) vs el valor que perciben?", textEn: "How much does Kingly pay (4.5K/month) vs perceived value?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { q: 14, text: "En que geografias podeis operar?", textEn: "In which geographies can you operate?", tag: "capacidad", tagLabel: "Capacidad", tagLabelEn: "Capacity" },
+    { q: 15, text: "El sistema es white-label o tiene marca Black Wolf?", textEn: "Is the system white-label or Black Wolf branded?", tag: "producto", tagLabel: "Producto", tagLabelEn: "Product" },
+    { q: 16, text: "Que herramientas/stack usais?", textEn: "What tools/stack do you use?", tag: "producto", tagLabel: "Producto", tagLabelEn: "Product" },
+    { q: 17, text: "Teneis algun caso de estudio o resultado medible?", textEn: "Do you have any case study or measurable result?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+    { q: 18, text: "Quien es el decisor en estas empresas?", textEn: "Who is the decision maker in these companies?", tag: "mercado", tagLabel: "Mercado", tagLabelEn: "Market" },
+];
+
+function buildQuestions() {
+    const container = document.getElementById('questions-container');
+    let html = '';
+    questionsData.forEach(item => {
+        if (item.block) {
+            html += `<h3 style="margin-top:32px;" data-i18n-block="${item.blockEn}">${item.block}</h3>`;
+            return;
+        }
+        const tagClass = 'tag-' + item.tag;
+        html += `
+        <div class="question-block" data-q="${item.q}">
+            <div class="question-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="question-number">${item.q}</div>
+                <div class="question-text" data-i18n-q="${item.q}">${item.text}</div>
+                <span class="question-tag ${tagClass}" data-i18n-tag="${item.q}">${item.tagLabel}</span>
+            </div>
+            <div class="question-body">
+                <textarea id="q${item.q}"></textarea>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function saveAnswers() {
+    const answers = {};
+    let answered = 0;
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
+        const el = document.getElementById('q' + i);
+        if (!el) continue;
+        const val = el.value.trim();
+        answers['q' + i] = val;
+        if (val) answered++;
+        const block = document.querySelector(`[data-q="${i}"]`);
+        if (!block) continue;
+        block.classList.remove('answered', 'current');
+        if (val) block.classList.add('answered');
+    }
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
+        if (!answers['q' + i]) {
+            const b = document.querySelector(`[data-q="${i}"]`);
+            if (b) b.classList.add('current');
+            break;
+        }
+    }
+    localStorage.setItem('bw_answers', JSON.stringify(answers));
+    const msg = currentLang === 'en' ? `Answers saved! (${answered}/${TOTAL_QUESTIONS} completed)` : `Respuestas guardadas! (${answered}/${TOTAL_QUESTIONS} completadas)`;
+    alert(msg);
+}
+
+function loadAnswers() {
+    const saved = localStorage.getItem('bw_answers');
+    if (!saved) return;
+    const answers = JSON.parse(saved);
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
+        const el = document.getElementById('q' + i);
+        if (!el || !answers['q' + i]) continue;
+        el.value = answers['q' + i];
+        const block = document.querySelector(`[data-q="${i}"]`);
+        if (block) { block.classList.add('answered'); block.classList.remove('current'); }
+    }
+}
+
+function clearAll() {
+    const msg = currentLang === 'en' ? 'Are you sure you want to clear all answers?' : 'Seguro que quieres borrar todas las respuestas?';
+    if (!confirm(msg)) return;
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
+        const el = document.getElementById('q' + i);
+        if (el) el.value = '';
+        const b = document.querySelector(`[data-q="${i}"]`);
+        if (b) { b.classList.remove('answered','current'); }
+    }
+    document.querySelector('[data-q="1"]').classList.add('current');
+    localStorage.removeItem('bw_answers');
+}
+
+function exportForClaude() {
+    const data = { timestamp: new Date().toISOString(), answers: {} };
+    questionsData.forEach(item => {
+        if (!item.q) return;
+        const el = document.getElementById('q' + item.q);
+        data.answers['q' + item.q] = { question: item.text, answer: el ? el.value.trim() || "(sin respuesta)" : "(sin respuesta)" };
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'discovery_answers.json'; a.click();
+}
+
+function preloadAnswers() {
+    if (localStorage.getItem('bw_answers')) return;
+    const all = {
+        q1: "El cliente de manufactura A es Kingly. Hacen 5 millones de facturacion anual, tienen unos 35-50 empleados y nos pagan 4,5k al mes durante un ano. Es una empresa de manufactura de calcetines y textiles para empresas B2B. El segundo es una empresa de muebles a medida que nos ha pedido un ERP y nos paga 10.000 euros (plan de digitalizacion de Bulgaria).",
+        q2: "Uno nos llego a traves de Cold Outbound a la lista de clientes de digitalizacion de Bulgaria, y el otro porque es vecino mio (cliente A). El cliente B por Cold Call.",
+        q3: "El pain point principal es el caos. Trabajan mucho, empleados no monitorizados, cada uno hace lo que puede, no hay estructura. No saben las metricas del negocio, les falta inteligencia. La ciberseguridad: solo nos contrato el cliente A porque le hackearon.",
+        q4: "Si, 3 clientes de growth (infoproductos online, ticket 1K + comision). No queremos seguir con ese modelo. Les hacemos landing pages, CRM, dashboard BI.",
+        q5: "5 semanas de delivery real para el sistema completo.",
+        q6: "Suscripciones y tokens: ~200 EUR/mes. Horas de trabajo CEO + CTO: ~120 horas.",
+        q7: "10 clientes comodamente. 20 ya seria morir con el equipo actual.",
+        q8: "Objetivo: 150K MRR. Un millon el primer ano.",
+        q9: "Runway de caja no tenemos. Clientes actuales nos sostienen. Queremos empezar a prospectar ya.",
+        q10: "Si, dispuestos a decir no a proyectos custom que no encajen.",
+        q11: "Incluye todo junto: portal BI, CRM, ERP y ciberseguridad. El cliente recibe un login en la app con todo integrado. Delivery en 5 semanas.",
+        q12: "El dashboard de BI es lo que mas WOW genera. Tambien tenemos una app que monitoriza MCPs/agentes de IA.",
+        q13: "El precio de 4.5K/mes lo perciben como justo. Pagan durante 1 ano con mantenimiento incluido. Despues, mantenimiento sale a ~1K/mes.",
+        q14: "Podemos operar globalmente, 100% remoto. Presenciales ahora en Bulgaria y Espana.",
+        q15: "Marca Black Wolf integrada, con opcion de personalizacion para que el cliente vea su propia marca/logo.",
+        q16: "Stack: custom development, SQL, APIs de Anthropic para agentes IA, Vercel, Supabase.",
+        q17: "No hay resultados medibles todavia. Acabamos de empezar.",
+        q18: "El decisor es el dueno de la empresa directamente (o su pareja)."
+    };
+    localStorage.setItem('bw_answers', JSON.stringify(all));
+}
+
+// ── Notes ──
+function toggleNotes() { document.getElementById('notesPanel').classList.toggle('open'); }
+function saveNotes() {
+    localStorage.setItem('bw_notes', document.getElementById('sessionNotes').value);
+    alert(currentLang === 'en' ? 'Notes saved!' : 'Notas guardadas!');
+}
+function loadNotes() {
+    const n = localStorage.getItem('bw_notes');
+    if (n) document.getElementById('sessionNotes').value = n;
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+buildQuestions();
+preloadAnswers();
+loadAnswers();
+loadNotes();
+
+// Apply saved language
+const savedLang = localStorage.getItem('bw_lang') || 'es';
+if (savedLang !== 'es') {
+    setTimeout(() => setLang(savedLang), 50);
+} else {
+    document.querySelector('.lang-btn[data-lang="es"]').classList.add('active');
+}
+</script>
+</body>
+</html>

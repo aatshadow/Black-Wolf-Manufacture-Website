@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "^/$", "dest": "/Blackwolf_Showcase_BG.html" },
+    { "src": "^/bg$", "dest": "/Blackwolf_Showcase_BG.html" },
+    { "src": "^/en$", "dest": "/Blackwolf_Showcase.html" }
+  ]
+}

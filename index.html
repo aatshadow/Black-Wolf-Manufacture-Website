@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=bg/index.html">
+  <title>BLACKWOLF — Пренасочване</title>
+  <script>
+    (function() {
+      var lang = (navigator.language || navigator.userLanguage || 'bg').toLowerCase();
+      if (lang.startsWith('en')) {
+        window.location.replace('en/index.html');
+      } else if (lang.startsWith('es')) {
+        window.location.replace('es/index.html');
+      } else {
+        window.location.replace('bg/index.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>
