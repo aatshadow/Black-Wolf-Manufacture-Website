@@ -2,17 +2,13 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-
-const stats = [
-  { value: "5 weeks", label: "Average deployment" },
-  { value: "3-30M", label: "Client revenue (EUR)" },
-  { value: "20-200", label: "Client employee range" },
-  { value: "Europe", label: "Our market" },
-];
+import { useLang, translations } from "@/lib/i18n";
 
 export function AboutStory() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const lang = useLang();
+  const t = translations.aboutStory[lang];
 
   return (
     <section className="relative bg-transparent py-16 md:py-32" ref={ref}>
@@ -24,21 +20,21 @@ export function AboutStory() {
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <h2 className="mb-4 text-[clamp(24px,3.5vw,48px)] font-light tracking-[-0.02em] text-white md:mb-6">
-              Our Story
+              {t.title}
             </h2>
             <p className="mb-3 text-sm leading-relaxed text-white/50 md:mb-4">
-              Manufacturing is the backbone of the European economy. Yet most factories still run on spreadsheets, disconnected tools, and gut feeling.
+              {t.p1}
             </p>
             <p className="mb-3 text-sm leading-relaxed text-white/50 md:mb-4">
-              We saw an opportunity: build a complete, integrated digital system — operations, security, and intelligence — and deliver it in weeks, not months.
+              {t.p2}
             </p>
             <p className="text-sm leading-relaxed text-white/60">
-              That&apos;s BlackWolf. One team. One system. One mission: <span className="text-blue-400">eliminate operational chaos.</span>
+              {t.p3} <span className="text-blue-400">{t.p3highlight}</span>
             </p>
           </motion.div>
 
           <div className="grid grid-cols-2 gap-3 md:gap-4">
-            {stats.map((stat, i) => (
+            {t.stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}

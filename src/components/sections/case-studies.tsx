@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { TrendingUp, Clock, Users, BarChart3, Zap, DollarSign } from "lucide-react";
+import { useLang, translations } from "@/lib/i18n";
 
 const caseStudies = [
   {
@@ -92,6 +93,8 @@ const caseStudies = [
 ];
 
 export function CaseStudies() {
+  const lang = useLang();
+  const t = translations.caseStudies[lang];
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -105,9 +108,9 @@ export function CaseStudies() {
           className="mb-12 text-center md:mb-20"
         >
           <h2 className="mb-4 text-[clamp(28px,3.5vw,48px)] font-light tracking-[-0.02em] text-white">
-            Success Stories
+            {t.title}
           </h2>
-          <p className="text-sm text-white/50 md:text-base">Real results from real businesses</p>
+          <p className="text-sm text-white/50 md:text-base">{t.subtitle}</p>
         </motion.div>
 
         <div className="flex flex-col gap-12 md:gap-24">
@@ -155,7 +158,7 @@ export function CaseStudies() {
               {/* Before / After */}
               <div className="grid grid-cols-1 md:grid-cols-2">
                 <div className="border-b border-white/[0.06] p-5 md:border-b-0 md:border-r md:p-12">
-                  <h4 className="mb-3 text-xs font-bold tracking-[0.2em] text-red-400/60 md:mb-4">BEFORE</h4>
+                  <h4 className="mb-3 text-xs font-bold tracking-[0.2em] text-red-400/60 md:mb-4">{t.before}</h4>
                   <ul className="space-y-2 md:space-y-3">
                     {study.before.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-xs text-white/40 md:gap-3 md:text-sm">
@@ -167,7 +170,7 @@ export function CaseStudies() {
                 </div>
                 <div className="p-5 md:p-12">
                   <h4 className="mb-3 text-xs font-bold tracking-[0.2em] text-green-400/60 md:mb-4">
-                    AFTER BLACKWOLF
+                    {t.after}
                   </h4>
                   <ul className="space-y-2 md:space-y-3">
                     {study.after.map((item) => (

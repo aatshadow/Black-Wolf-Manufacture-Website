@@ -5,20 +5,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-
-const navItems = [
-  { name: "Home", href: "/" },
-  { name: "Services", href: "/services" },
-  { name: "Showcase", href: "/showcase" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
-];
+import { useLang, translations, localePath } from "@/lib/i18n";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const pathname = usePathname();
+  const lang = useLang();
+  const t = translations.nav[lang];
+
+  const navItems = [
+    { name: t.home, href: localePath("/", lang) },
+    { name: t.services, href: localePath("/services", lang) },
+    { name: t.showcase, href: localePath("/showcase", lang) },
+    { name: t.about, href: localePath("/about", lang) },
+    { name: t.contact, href: localePath("/contact", lang) },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -88,10 +91,10 @@ export function Navbar() {
           {/* Actions */}
           <div className="hidden items-center gap-4 md:flex">
             <Link
-              href="/contact"
+              href={localePath("/contact", lang)}
               className="rounded-full bg-blue-600 px-5 py-2 text-[13px] font-semibold text-white transition-all hover:bg-blue-500 hover:shadow-[0_0_24px_rgba(37,99,235,0.3)]"
             >
-              Book a Call
+              {t.bookCall}
             </Link>
           </div>
 
@@ -148,10 +151,10 @@ export function Navbar() {
               transition={{ delay: 0.5 }}
             >
               <Link
-                href="/contact"
+                href={localePath("/contact", lang)}
                 className="mt-4 rounded-full bg-blue-600 px-8 py-3 text-base font-semibold text-white"
               >
-                Book a Call
+                {t.bookCall}
               </Link>
             </motion.div>
           </motion.div>

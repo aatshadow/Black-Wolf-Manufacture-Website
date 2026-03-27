@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, animate } from "framer-motion";
 import Image from "next/image";
+import { useLang, translations } from "@/lib/i18n";
+
+type CinematicT = (typeof translations.cinematic)[keyof typeof translations.cinematic];
 
 /* ─── TRANSITION GRAPHIC ─── */
 function TransitionLine() {
@@ -18,8 +21,8 @@ function TransitionLine() {
 
 /* ─── SCENE COMPONENTS ─── */
 
-function Scene1() {
-  const words = "Your factory generates millions.".split(" ");
+function Scene1({ t }: { t: CinematicT }) {
+  const words = t.scene1.split(" ");
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="text-center">
@@ -40,8 +43,8 @@ function Scene1() {
   );
 }
 
-function Scene2() {
-  const painWords = ["Excel.", "WhatsApp.", "Memory."];
+function Scene2({ t }: { t: CinematicT }) {
+  const painWords = t.scene2words;
   return (
     <div className="flex flex-col items-center gap-6 md:gap-8">
       <motion.p
@@ -50,7 +53,7 @@ function Scene2() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="text-xl font-normal text-white/80 md:text-3xl"
       >
-        But everything runs on...
+        {t.scene2intro}
       </motion.p>
       <div className="flex flex-col items-center gap-3 md:flex-row md:gap-8">
         {painWords.map((word, i) => (
@@ -77,10 +80,10 @@ function Scene2() {
   );
 }
 
-function Scene3() {
+function Scene3({ t }: { t: CinematicT }) {
   const lines = [
-    { text: "Manual fulfillment. Disconnected data.", from: "left" },
-    { text: "Every new opportunity gets swallowed by the chaos.", from: "right" },
+    { text: t.scene3[0], from: "left" },
+    { text: t.scene3[1], from: "right" },
   ];
   return (
     <div className="flex flex-col items-center gap-5 md:gap-8">
@@ -101,7 +104,7 @@ function Scene3() {
   );
 }
 
-function Scene4() {
+function Scene4({ t }: { t: CinematicT }) {
   return (
     <div className="flex flex-col items-center gap-5 md:gap-8">
       <motion.p
@@ -110,7 +113,7 @@ function Scene4() {
         transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="text-center text-2xl font-normal text-white md:text-4xl"
       >
-        Your attention is your most valuable resource.
+        {t.scene4a}
       </motion.p>
       <motion.p
         initial={{ opacity: 0, y: 15 }}
@@ -118,13 +121,13 @@ function Scene4() {
         transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
         className="text-center text-base font-normal text-white/60 md:text-xl"
       >
-        But you spend it on tasks a system should handle.
+        {t.scene4b}
       </motion.p>
     </div>
   );
 }
 
-function CostCounter() {
+function CostCounter({ counterText }: { counterText: string }) {
   const motionVal = useMotionValue(0);
   const [display, setDisplay] = useState("0");
   const targetRef = useRef(999999);
@@ -161,13 +164,13 @@ function CostCounter() {
         transition={{ delay: 1.5 }}
         className="relative text-base text-white/50 md:text-lg"
       >
-        /month — and counting
+        {counterText}
       </motion.span>
     </motion.div>
   );
 }
 
-function Scene5() {
+function Scene5({ t }: { t: CinematicT }) {
   return (
     <div className="flex flex-col items-center gap-6 md:gap-10">
       <motion.p
@@ -176,21 +179,15 @@ function Scene5() {
         transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="text-center text-2xl font-normal text-white md:text-4xl"
       >
-        What is inaction really costing you?
+        {t.scene5}
       </motion.p>
-      <CostCounter />
+      <CostCounter counterText={t.scene5counter} />
     </div>
   );
 }
 
-function Scene6() {
-  const modules = [
-    { tag: "CRM", desc: "Never lose a sale again", delay: 1.0 },
-    { tag: "ERP", desc: "Automate fulfillment, eliminate repetition", delay: 1.4 },
-    { tag: "BI", desc: "Complete visibility into your business", delay: 1.8 },
-    { tag: "SOC", desc: "Manufacturing is the #1 target for cyberattacks", delay: 2.2 },
-    { tag: "AI", desc: "Intelligent agents powering every decision", delay: 2.6 },
-  ];
+function Scene6({ t }: { t: CinematicT }) {
+  const modules = t.scene6modules.map((m, i) => ({ ...m, delay: 1.0 + i * 0.4 }));
   return (
     <div className="flex flex-col items-center gap-6 md:gap-8">
       <motion.p
@@ -199,7 +196,7 @@ function Scene6() {
         transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="text-center text-2xl font-normal text-white md:text-4xl"
       >
-        One system. Fully integrated. 5 weeks.
+        {t.scene6title}
       </motion.p>
       <div className="flex w-full max-w-lg flex-col gap-3 md:max-w-xl md:gap-4">
         {modules.map((mod, i) => (
@@ -227,7 +224,7 @@ function Scene6() {
   );
 }
 
-function Scene7() {
+function Scene7({ t }: { t: CinematicT }) {
   return (
     <div className="flex flex-col items-center gap-5 md:gap-6">
       <motion.p
@@ -236,7 +233,7 @@ function Scene7() {
         transition={{ duration: 0.6, delay: 0.3 }}
         className="text-center text-3xl font-normal text-white md:text-5xl"
       >
-        Always at the cutting edge.
+        {t.scene7a}
       </motion.p>
       <motion.p
         initial={{ opacity: 0 }}
@@ -244,13 +241,13 @@ function Scene7() {
         transition={{ duration: 0.8, delay: 1.2 }}
         className="text-center text-base font-normal text-white/50 md:text-lg"
       >
-        The latest technology, continuously evolving.
+        {t.scene7b}
       </motion.p>
     </div>
   );
 }
 
-function Scene8() {
+function Scene8({ t }: { t: CinematicT }) {
   return (
     <div className="flex flex-col items-center gap-5 md:gap-6">
       <motion.div
@@ -281,7 +278,7 @@ function Scene8() {
         transition={{ duration: 1, delay: 1, ease: [0.16, 1, 0.3, 1] }}
         className="text-center text-3xl font-normal tracking-tight text-white md:text-5xl"
       >
-        Digital Infrastructure
+        {t.scene8a}
       </motion.h2>
       <motion.p
         initial={{ opacity: 0 }}
@@ -289,7 +286,7 @@ function Scene8() {
         transition={{ duration: 0.8, delay: 1.5 }}
         className="text-sm tracking-[0.25em] text-white/50 md:text-base"
       >
-        FOR MANUFACTURING
+        {t.scene8b}
       </motion.p>
     </div>
   );
@@ -317,6 +314,9 @@ export function CinematicIntro() {
   const [visible, setVisible] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
+
+  const lang = useLang();
+  const ct = translations.cinematic[lang];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -425,7 +425,7 @@ export function CinematicIntro() {
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="relative z-20 w-full max-w-3xl px-6 md:px-8"
             >
-              <SceneComponent />
+              <SceneComponent t={ct} />
             </motion.div>
           </AnimatePresence>
 
@@ -463,7 +463,7 @@ export function CinematicIntro() {
             onClick={skip}
             className="absolute right-6 top-[8%] z-20 rounded-full border border-white/15 px-5 py-2 text-xs tracking-wider text-white/40 transition-colors hover:border-white/25 hover:text-white/60 md:right-10 md:text-sm"
           >
-            SKIP
+            {ct.skip}
           </motion.button>
         </motion.div>
       )}

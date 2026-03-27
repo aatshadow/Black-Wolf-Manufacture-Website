@@ -2,6 +2,7 @@
 
 import { motion, useInView, useMotionValue, animate } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
+import { useLang, translations } from "@/lib/i18n";
 
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const ref = useRef(null);
@@ -23,22 +24,17 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-const stats = [
-  { value: 5, suffix: "", label: "Weeks to Deploy" },
-  { value: 0, suffix: "", label: "Security Monitoring", display: "24/7" },
-  { value: 80, suffix: "%", label: "Operational Efficiency Gain", prefix: ">" },
-  { value: 3, suffix: "", label: "Core Systems in One" },
-];
-
 export function Stats() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const lang = useLang();
+  const statData = translations.stats[lang];
 
   return (
     <section className="relative border-y border-white/[0.06] bg-transparent py-12 md:py-20" ref={ref}>
       <div className="mx-auto max-w-[1200px] px-4 md:px-6">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
-          {stats.map((stat, i) => (
+          {statData.map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
@@ -47,8 +43,8 @@ export function Stats() {
               className="text-center"
             >
               <div className="mb-1 text-2xl font-light text-white md:mb-2 md:text-4xl">
-                {stat.prefix || ""}
-                {stat.display ? (
+                {"prefix" in stat ? stat.prefix : ""}
+                {"display" in stat && stat.display ? (
                   stat.display
                 ) : (
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />

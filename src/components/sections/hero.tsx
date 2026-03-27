@@ -2,10 +2,13 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-
-const words = "We build the operating system your factory needs".split(" ");
+import { useLang, translations, localePath } from "@/lib/i18n";
 
 export function Hero() {
+  const lang = useLang();
+  const t = translations.hero[lang];
+  const words = t.title.split(" ");
+
   return (
     <section className="relative flex flex-1 items-center justify-center overflow-hidden pt-[72px]">
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
@@ -20,7 +23,7 @@ export function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-600 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600" />
           </span>
-          <span className="text-[11px] font-medium tracking-wider text-white/50 md:text-xs">All-in-One Digital Infrastructure</span>
+          <span className="text-[11px] font-medium tracking-wider text-white/50 md:text-xs">{t.badge}</span>
         </motion.div>
 
         {/* Title — slower, smoother word reveal */}
@@ -50,7 +53,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto mb-10 max-w-2xl text-[15px] leading-relaxed text-white/40 md:mb-12 md:text-lg"
         >
-          Stop running your factory on spreadsheets and gut instinct. One integrated system — operations, security, intelligence — deployed in 5 weeks.
+          {t.subtitle}
         </motion.p>
 
         {/* CTAs */}
@@ -60,22 +63,22 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 2.8, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
         >
-          <Link href="/services" className="w-full sm:w-auto">
+          <Link href={localePath("/services", lang)} className="w-full sm:w-auto">
             <motion.button
               whileHover={{ scale: 1.03, boxShadow: "0 0 40px rgba(37,99,235,0.25)" }}
               whileTap={{ scale: 0.97 }}
               className="w-full rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 sm:w-auto"
             >
-              Explore Our Services
+              {t.cta1}
             </motion.button>
           </Link>
-          <Link href="/contact" className="w-full sm:w-auto">
+          <Link href={localePath("/contact", lang)} className="w-full sm:w-auto">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="w-full rounded-full border border-white/10 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:border-white/20 hover:bg-white/[0.04] sm:w-auto"
             >
-              Book a Call
+              {t.cta2}
             </motion.button>
           </Link>
         </motion.div>

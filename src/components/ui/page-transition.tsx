@@ -3,11 +3,19 @@
 import { useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
-
-const PAGE_ORDER = ["/", "/services", "/showcase", "/about", "/contact"];
+import { useLang, localePath } from "@/lib/i18n";
 
 export function ScrollNavigator() {
   const pathname = usePathname();
+  const lang = useLang();
+
+  const PAGE_ORDER = [
+    localePath("/", lang),
+    localePath("/services", lang),
+    localePath("/showcase", lang),
+    localePath("/about", lang),
+    localePath("/contact", lang),
+  ];
   const router = useRouter();
   const isTransitioning = useRef(false);
   const lastScrollTime = useRef(0);

@@ -9,6 +9,7 @@ import { CinematicIntro } from "@/components/ui/cinematic-intro";
 import { SpaceBackground } from "@/components/ui/space-background";
 import { ScrollNavigator } from "@/components/ui/page-transition";
 import { AIChatWidget } from "@/components/ui/ai-chat-widget";
+import { LangFromPath } from "@/lib/i18n";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans bg-[#050510] text-[#E4E4E7] antialiased`} suppressHydrationWarning>
+        <LangFromPath>
         <CinematicIntro />
         <SpaceBackground />
         <CursorFollower />
@@ -41,6 +43,7 @@ export default function RootLayout({
         <main className="relative z-10">{children}</main>
         <Footer />
         <AIChatWidget />
+        </LangFromPath>
       </body>
     </html>
   );

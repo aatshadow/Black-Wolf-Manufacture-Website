@@ -4,8 +4,11 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Landmark, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useLang, translations, localePath } from "@/lib/i18n";
 
 export function GovPrograms() {
+  const lang = useLang();
+  const t = translations.govPrograms[lang];
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -23,29 +26,29 @@ export function GovPrograms() {
           </div>
 
           <h3 className="mb-3 text-xl font-light text-white md:text-2xl">
-            Government Digitalization Programs
+            {t.title}
           </h3>
 
           <p className="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-white/50 md:text-base">
-            We help you access and qualify for official digitalization subsidies and programs from the Spanish and Bulgarian governments. Our solutions are fully eligible — we handle the paperwork so you can focus on the transformation.
+            {t.description}
           </p>
 
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3 md:mb-8">
             <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-white/50">
-              🇪🇸 Kit Digital — Spain
+              {t.kitDigital}
             </span>
             <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-white/50">
-              🇧🇬 Digitalization Grants — Bulgaria
+              {t.bgGrants}
             </span>
           </div>
 
-          <Link href="/contact">
+          <Link href={localePath("/contact", lang)}>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-600/10 px-6 py-2.5 text-sm font-medium text-blue-400 transition-all hover:bg-blue-600/20"
             >
-              Check your eligibility
+              {t.cta}
               <ArrowRight className="h-4 w-4" />
             </motion.button>
           </Link>

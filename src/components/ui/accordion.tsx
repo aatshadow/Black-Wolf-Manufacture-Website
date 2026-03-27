@@ -9,7 +9,7 @@ interface AccordionItem {
   answer: string;
 }
 
-export function Accordion({ items }: { items: AccordionItem[] }) {
+export function Accordion({ items }: { items: readonly AccordionItem[] }) {
   const [openItem, setOpenItem] = useState<number | null>(null);
 
   return (
