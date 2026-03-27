@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLACKWOLF — Контакт</title>
+  <meta name="description" content="Свържете се с BlackWolf. Изпратете ни съобщение или резервирайте консултация.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="../img/logo.png">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><img src="../img/logo.png" alt="BlackWolf"><span>BLACKWOLF</span></a>
+  <div class="nav-links"><a href="index.html" class="nav-link">Начало</a><a href="services.html" class="nav-link">Услуги</a><a href="showcase.html" class="nav-link">Портфолио</a><a href="about.html" class="nav-link">За нас</a><a href="contact.html" class="nav-link active">Контакт</a></div>
+  <div class="nav-actions"><div class="lang-switch"><a href="../en/contact.html" class="lang-btn">EN</a><a href="../es/contact.html" class="lang-btn">ES</a><a href="../bg/contact.html" class="lang-btn active">BG</a></div><a href="contact.html" class="btn-contact">Резервирай обаждане</a></div>
+  <button class="nav-mobile-toggle"><span></span><span></span><span></span></button>
+</div></nav>
+
+<main>
+<section class="hero hero-small" style="min-height:40vh;">
+  <div class="hero-bg"><div class="hero-grid"></div><div class="hero-glow-1"></div></div>
+  <div class="hero-content">
+    <div class="hero-badge reveal">Свържете се</div>
+    <h1 class="hero-title reveal" data-delay="100">Нека поговорим за вашия бизнес.</h1>
+    <p class="hero-subtitle reveal" data-delay="200">Независимо дали сте готови да започнете или просто проучвате възможностите — ще се радваме да чуем от вас.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:80px;">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <div class="reveal">
+        <h3 style="margin-bottom:8px;">Изпратете ни съобщение</h3>
+        <p style="font-size:14px;margin-bottom:32px;">Попълнете формата и ще ви отговорим в рамките на 24 часа.</p>
+        <form class="contact-form">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="name">Пълно име</label><input type="text" id="name" class="form-input" placeholder="Иван Петров" required></div>
+            <div class="form-group"><label class="form-label" for="company">Име на компанията</label><input type="text" id="company" class="form-input" placeholder="Вашата компания" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="email">Имейл</label><input type="email" id="email" class="form-input" placeholder="ivan@company.bg" required></div>
+            <div class="form-group"><label class="form-label" for="phone">Телефон (по избор)</label><input type="tel" id="phone" class="form-input" placeholder="+359 ..."></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="size">Размер на компанията</label>
+              <select id="size" class="form-select"><option value="">Изберете размер</option><option value="1-20">1-20 служители</option><option value="20-50">20-50 служители</option><option value="50-200">50-200 служители</option><option value="200+">200+ служители</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="revenue">Годишни приходи</label>
+              <select id="revenue" class="form-select"><option value="">Изберете диапазон</option><option value="<1M">Под 1M EUR</option><option value="1-5M">1-5M EUR</option><option value="5-15M">5-15M EUR</option><option value="15-30M">15-30M EUR</option><option value="30M+">30M+ EUR</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label" for="message">Съобщение</label><textarea id="message" class="form-textarea" placeholder="Разкажете ни за вашия бизнес и какво търсите..." rows="5"></textarea></div>
+          <button type="submit" class="btn btn-primary btn-full">Изпрати съобщение</button>
+          <p class="form-note">Уважаваме поверителността ви. Вашата информация никога няма да бъде споделена с трети страни.</p>
+        </form>
+      </div>
+
+      <div class="reveal" data-delay="200" id="book">
+        <h3 style="margin-bottom:8px;">Насрочете консултация</h3>
+        <p style="font-size:14px;margin-bottom:32px;">Предпочитате да говорите директно? Резервирайте 30-минутно обаждане с нашия екип.</p>
+        <div class="calendly-embed"><iframe src="https://calendly.com/blackwolf/consultation" width="100%" height="700" frameborder="0" title="Насрочете обаждане"></iframe></div>
+        <div style="margin-top:24px;">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Или се свържете директно:</p>
+          <a href="mailto:contact@blackwolfsec.io" style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-secondary);transition:color 0.2s;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            contact@blackwolfsec.io
+          </a>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">Базирани в Европа — обслужваме производители на целия континент.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="section-header"><h2 class="reveal">Често задавани въпроси</h2></div>
+    <div class="faq-list">
+      <details class="faq-item reveal"><summary>Колко време отнема внедряването?</summary><div class="faq-answer">Нашето стандартно внедряване отнема 5 седмици от старт до пускане. Това включва откриване, архитектура, разработка, внедряване и оптимизация.</div></details>
+      <details class="faq-item reveal" data-delay="100"><summary>Трябва ли да заменим съществуващите си системи?</summary><div class="faq-answer">Не непременно. BlackWolf може да се интегрира със съществуващите ви инструменти или да ги замени изцяло — в зависимост от това, което има смисъл за вашия бизнес.</div></details>
+      <details class="faq-item reveal" data-delay="200"><summary>Какъв е минималният ангажимент?</summary><div class="faq-answer">Нашите договори са месец за месец след първоначалния период на внедряване. Вярваме, че трябва да заслужим вашия бизнес всеки месец.</div></details>
+      <details class="faq-item reveal" data-delay="300"><summary>В кои държави работите?</summary><div class="faq-answer">В момента обслужваме производствени компании в цяла Европа, със силно присъствие в България и Испания. Нашият екип работи на английски, испански и български.</div></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer"><div class="footer-inner">
+  <div class="footer-grid">
+    <div class="footer-brand"><div class="footer-brand-name"><img src="../img/logo.png" alt="BlackWolf"><span>BLACKWOLF</span></div><p>Дигитална инфраструктура за производствени компании в цяла Европа.</p></div>
+    <div class="footer-col"><h4>Компания</h4><a href="services.html">Услуги</a><a href="showcase.html">Портфолио</a><a href="about.html">За нас</a><a href="contact.html">Контакт</a></div>
+    <div class="footer-col"><h4>Свържете се</h4><a href="contact.html">Резервирай обаждане</a><a href="mailto:contact@blackwolfsec.io">contact@blackwolfsec.io</a></div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 BlackWolf. Всички права запазени.</span><span>Направено с прецизност.</span></div>
+</div></footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

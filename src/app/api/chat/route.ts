@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent-system-prompt";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
-const BLACKWOLF_CLIENT_ID = process.env.BLACKWOLF_CLIENT_ID!;
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +12,8 @@ export async function POST(req: NextRequest) {
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
+
+    const anthropic = new Anthropic();
 
     // Build conversation messages from history
     const messages: Anthropic.MessageParam[] = [];
@@ -73,6 +71,8 @@ async function saveToSupabase(
   conversationId: string | null,
   lang: string
 ) {
+  const supabase = getSupabase();
+  const clientId = process.env.BLACKWOLF_CLIENT_ID!;
   let convId = conversationId;
 
   // Create conversation if new
@@ -80,7 +80,7 @@ async function saveToSupabase(
     const { data } = await supabase
       .from("chat_conversations")
       .insert({
-        client_id: BLACKWOLF_CLIENT_ID,
+        client_id: clientId,
         channel: "website_ai",
         status: "active",
         last_message: userMessage.slice(0, 200),
@@ -106,7 +106,7 @@ async function saveToSupabase(
   // Save both messages
   await supabase.from("chat_messages").insert([
     {
-      client_id: BLACKWOLF_CLIENT_ID,
+      client_id: clientId,
       conversation_id: convId,
       sender_type: "contact",
       content: userMessage,
@@ -114,7 +114,7 @@ async function saveToSupabase(
       metadata: { lang, source: "website_ai_widget" },
     },
     {
-      client_id: BLACKWOLF_CLIENT_ID,
+      client_id: clientId,
       conversation_id: convId,
       sender_type: "agent",
       content: assistantReply,

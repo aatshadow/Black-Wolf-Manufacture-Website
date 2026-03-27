@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
-const BLACKWOLF_CLIENT_ID = process.env.BLACKWOLF_CLIENT_ID!;
-const WEBSITE_PIPELINE_ID = process.env.BLACKWOLF_WEBSITE_PIPELINE_ID!;
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabase();
+    const BLACKWOLF_CLIENT_ID = process.env.BLACKWOLF_CLIENT_ID!;
+    const WEBSITE_PIPELINE_ID = process.env.BLACKWOLF_WEBSITE_PIPELINE_ID!;
+
     const body = await req.json();
     const { name, email, phone, companyName, companySize, revenue, message } = body;
 
