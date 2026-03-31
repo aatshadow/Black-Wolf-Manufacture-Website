@@ -91,6 +91,12 @@ export function Navbar() {
           {/* Actions */}
           <div className="hidden items-center gap-4 md:flex">
             <Link
+              href="/kea/login"
+              className="rounded-full border border-white/10 px-5 py-2 text-[13px] font-medium text-white/60 transition-all hover:text-white hover:border-blue-500/30 hover:bg-white/[0.03]"
+            >
+              KEA Login
+            </Link>
+            <Link
               href={localePath("/contact", lang)}
               className="rounded-full bg-blue-600 px-5 py-2 text-[13px] font-semibold text-white transition-all hover:bg-blue-500 hover:shadow-[0_0_24px_rgba(37,99,235,0.3)]"
             >
@@ -149,10 +155,17 @@ export function Navbar() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
+              className="flex flex-col items-center gap-3"
             >
               <Link
+                href="/kea/login"
+                className="rounded-full border border-white/10 px-8 py-3 text-base font-medium text-white/70"
+              >
+                KEA Login
+              </Link>
+              <Link
                 href={localePath("/contact", lang)}
-                className="mt-4 rounded-full bg-blue-600 px-8 py-3 text-base font-semibold text-white"
+                className="rounded-full bg-blue-600 px-8 py-3 text-base font-semibold text-white"
               >
                 {t.bookCall}
               </Link>
