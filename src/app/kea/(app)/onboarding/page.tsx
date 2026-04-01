@@ -164,14 +164,17 @@ export default function OnboardingPage() {
   const step = steps[current];
 
   const finish = async () => {
-    // Mark onboarding complete in user profile settings or just redirect
     if (user) {
+      // Mark onboarding complete by setting last_session_at + language
       await supabase
         .from('user_profiles')
-        .update({ language: locale })
+        .update({
+          language: locale,
+          last_session_at: new Date().toISOString(),
+        })
         .eq('id', user.id);
     }
-    router.push('/kea/dashboard');
+    window.location.href = '/kea/dashboard';
   };
 
   return (

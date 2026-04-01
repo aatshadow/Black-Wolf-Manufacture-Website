@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       .eq('id', org.active_template_id)
       .single();
 
-    let tracks: Array<{
+    const tracks: Array<{
       id: string;
       name: string;
       code: string;

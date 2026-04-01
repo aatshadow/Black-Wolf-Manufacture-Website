@@ -49,14 +49,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     setLoading(false);
 
-    // If this is the user's first login (no sessions ever), redirect to onboarding
-    if (!pathname.startsWith('/kea/onboarding')) {
+    // Redirect non-admin users to onboarding on first login
+    // Admin users skip onboarding (they manage clients, not do extraction)
+    if (
+      profile.role !== 'admin' &&
+      !profile.last_session_at &&
+      !pathname.startsWith('/kea/onboarding')
+    ) {
       const { count } = await supabase
         .from('sessions')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId);
 
-      if (count === 0 && !profile.last_session_at) {
+      if (count === 0) {
         window.location.href = '/kea/onboarding';
       }
     }
