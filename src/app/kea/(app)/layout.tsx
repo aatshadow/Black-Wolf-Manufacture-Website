@@ -10,6 +10,7 @@ import '../globals-kea.css';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, setUser, setOrganization, setLoading, isLoading } = useAuthStore();
   const [authChecked, setAuthChecked] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data: profile } = await supabase
@@ -39,28 +40,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [setUser, setOrganization, setLoading]);
 
   useEffect(() => {
-    // Listen for auth state changes FIRST
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session) {
-        if (authChecked) {
-          window.location.href = '/kea/login';
-        }
-        setAuthChecked(true);
-        setLoading(false);
-        return;
-      }
+    let mounted = true;
 
-      await loadProfile(session.user.id);
-      setAuthChecked(true);
-    });
-
-    // Then check current session
+    // Check current session first
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+
       if (!session) {
-        setAuthChecked(true);
-        setLoading(false);
+        // No session — redirect to login
+        setRedirecting(true);
         window.location.href = '/kea/login';
         return;
       }
@@ -69,9 +57,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setAuthChecked(true);
     });
 
-    return () => subscription.unsubscribe();
-  }, [loadProfile, setLoading, authChecked]);
+    // Listen for auth state changes (login/logout while on page)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
+      if (event === 'SIGNED_OUT') {
+        setRedirecting(true);
+        window.location.href = '/kea/login';
+        return;
+      }
+
+      if (session && authChecked) {
+        await loadProfile(session.user.id);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [loadProfile, authChecked]);
 
   // Show loading while checking auth
   if (isLoading || !user) {
@@ -85,7 +92,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
             </div>
           </div>
-          <p className="text-sm text-white/30">Loading KEA...</p>
+          <p className="text-sm text-white/30">
+            {redirecting ? 'Redirecting...' : 'Loading KEA...'}
+          </p>
         </div>
         <div className="grain-overlay" />
       </div>
