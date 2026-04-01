@@ -220,32 +220,36 @@ export default function ClientsPage() {
     if (!newName.trim() || !newSlug.trim()) return;
     setCreating(true);
 
-    const { data: newOrg, error } = await supabase
-      .from('organizations')
-      .insert({
-        name: newName.trim(),
-        slug: newSlug.trim(),
-        industry: newIndustry,
-        language: newLanguage,
-        status: 'active',
-      })
-      .select('*')
-      .single();
+    try {
+      const res = await fetch('/api/kea/create-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newName.trim(),
+          slug: newSlug.trim(),
+          industry: newIndustry,
+          language: newLanguage,
+        }),
+      });
+      const result = await res.json();
 
-    if (!error && newOrg) {
-      if (newTemplateId) {
-        await cloneTemplateToOrg(newTemplateId, newOrg.id);
+      if (result.success && result.organization) {
+        if (newTemplateId) {
+          await cloneTemplateToOrg(newTemplateId, result.organization.id);
+        }
+        setNewName('');
+        setNewSlug('');
+        setNewIndustry('manufacturing');
+        setNewLanguage('en');
+        setNewTemplateId('');
+        setShowCreate(false);
+        fetchClients();
+        fetchTemplates();
+      } else {
+        alert(`Error: ${result.error}`);
       }
-      setNewName('');
-      setNewSlug('');
-      setNewIndustry('manufacturing');
-      setNewLanguage('en');
-      setNewTemplateId('');
-      setShowCreate(false);
-      fetchClients();
-      fetchTemplates();
-    } else {
-      alert(`Error: ${error?.message}`);
+    } catch (err) {
+      alert(`Error: ${err}`);
     }
     setCreating(false);
   };
@@ -272,18 +276,9 @@ export default function ClientsPage() {
   };
 
   const handleAssignTemplate = async (clientId: string, templateId: string) => {
-    if (!templateId) {
-      await supabase.from('organizations').update({ active_template_id: null }).eq('id', clientId);
-      setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, active_template_id: null } : c)));
-      return;
-    }
-    const tmpl = templates.find((t) => t.id === templateId);
-    if (tmpl && tmpl.organization_id !== clientId) {
-      await cloneTemplateToOrg(templateId, clientId);
-    } else {
-      await supabase.from('organizations').update({ active_template_id: templateId }).eq('id', clientId);
-      setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, active_template_id: templateId } : c)));
-    }
+    if (!templateId) return;
+    // Always clone — each client gets their own copy
+    await cloneTemplateToOrg(templateId, clientId);
   };
 
   const handleAddUser = async (clientId: string) => {
