@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/kea/supabase-client';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
+import { useKeaLang, useT } from '@/lib/kea/i18n';
 import { Header } from '@/components/kea/shared/Header';
 import { Loader2 } from 'lucide-react';
 import '../globals-kea.css';
@@ -11,6 +13,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, setUser, setOrganization, setLoading, isLoading } = useAuthStore();
   const [authChecked, setAuthChecked] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const pathname = usePathname();
+  const t = useT();
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data: profile } = await supabase
@@ -28,6 +32,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     setUser(profile);
 
+    // Sync language from profile
+    if (profile.language && ['en', 'bg', 'es'].includes(profile.language)) {
+      useKeaLang.getState().setLocale(profile.language as 'en' | 'bg' | 'es');
+    }
+
     const { data: org } = await supabase
       .from('organizations')
       .select('*')
@@ -39,7 +48,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false);
-  }, [setUser, setOrganization, setLoading]);
+
+    // If this is the user's first login (no sessions ever), redirect to onboarding
+    if (!pathname.startsWith('/kea/onboarding')) {
+      const { count } = await supabase
+        .from('sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (count === 0 && !profile.last_session_at) {
+        window.location.href = '/kea/onboarding';
+      }
+    }
+  }, [setUser, setOrganization, setLoading, pathname]);
 
   useEffect(() => {
     let mounted = true;
@@ -95,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <p className="text-sm text-white/30">
-            {redirecting ? 'Redirecting...' : 'Loading KEA...'}
+            {redirecting ? t('loading.redirecting') : t('loading.app')}
           </p>
         </div>
         <div className="grain-overlay" />

@@ -23,7 +23,7 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
   try {
-    const { sessionId, trackId, message, organizationId, userId } =
+    const { sessionId, trackId, message, organizationId, userId, language } =
       await request.json();
 
     if (!trackId || !message || !organizationId || !userId) {
@@ -260,11 +260,18 @@ export async function POST(request: Request) {
       }>) ?? undefined
     );
 
+    // Language instruction
+    const langNames: Record<string, string> = { en: 'English', bg: 'Bulgarian', es: 'Spanish' };
+    const langInstruction = language && language !== 'en'
+      ? `\n\nIMPORTANT: Respond to the user in ${langNames[language] || 'English'}. All your messages must be written in ${langNames[language] || 'English'}.`
+      : '';
+
     const systemPrompt = [
       basePrompt,
       schemaContextStr,
       knowledgeStr,
       sessionContextStr,
+      langInstruction,
     ]
       .filter(Boolean)
       .join('\n\n');

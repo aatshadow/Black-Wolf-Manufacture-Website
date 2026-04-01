@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
 import { supabase } from '@/lib/kea/supabase-client';
+import { useKeaLang, useT } from '@/lib/kea/i18n';
 
 interface ChatMessage {
   id: string;
@@ -70,6 +71,8 @@ export default function ChatSessionPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const organization = useAuthStore((s) => s.organization);
   const user = useAuthStore((s) => s.user);
+  const locale = useKeaLang((s) => s.locale);
+  const t = useT();
 
   // Load session, messages, and progress
   const loadSession = useCallback(async () => {
@@ -230,6 +233,7 @@ export default function ChatSessionPage() {
           message: input.trim(),
           organizationId: organization.id,
           userId: user.id,
+          language: locale,
         }),
       });
 
@@ -540,7 +544,7 @@ export default function ChatSessionPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
+                placeholder={t('chat.typeMessage')}
                 rows={1}
                 className="kea-input resize-none min-h-[44px] max-h-[120px] pr-12"
                 style={{

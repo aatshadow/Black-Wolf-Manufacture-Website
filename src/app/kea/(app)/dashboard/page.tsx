@@ -22,6 +22,7 @@ import {
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
 import { supabase } from '@/lib/kea/supabase-client';
+import { useT } from '@/lib/kea/i18n';
 
 interface TrackWithStats {
   id: string;
@@ -71,6 +72,7 @@ function ProgressRing({ percentage, size = 80 }: { percentage: number; size?: nu
 export default function DashboardPage() {
   const organization = useAuthStore((s) => s.organization);
   const user = useAuthStore((s) => s.user);
+  const t = useT();
   const [dataPoints, setDataPoints] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [alertCount, setAlertCount] = useState(0);
@@ -214,18 +216,18 @@ export default function DashboardPage() {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return t('dash.greeting.morning');
+    if (h < 18) return t('dash.greeting.afternoon');
+    return t('dash.greeting.evening');
   })();
 
   const shortcuts = [
-    { label: 'Start Chat', desc: 'Begin extraction session', href: '/kea/chat', icon: MessageSquare, color: 'from-blue-500/20 to-blue-600/10', border: 'border-blue-500/20', iconColor: 'text-blue-400' },
-    { label: 'Schemas', desc: 'Create & manage templates', href: '/kea/dashboard/schemas', icon: Sparkles, color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/20', iconColor: 'text-purple-400' },
-    { label: 'Monitor', desc: 'Live session tracking', href: '/kea/dashboard/monitor', icon: Activity, color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/20', iconColor: 'text-emerald-400' },
-    { label: 'Export', desc: 'Download & deploy data', href: '/kea/dashboard/export', icon: Download, color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/20', iconColor: 'text-amber-400' },
-    { label: 'Users', desc: 'Manage team members', href: '/kea/dashboard/users', icon: Users, color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/20', iconColor: 'text-cyan-400' },
-    { label: 'Alerts', desc: 'Review contradictions', href: '/kea/dashboard/alerts', icon: AlertTriangle, color: 'from-red-500/20 to-red-600/10', border: 'border-red-500/20', iconColor: 'text-red-400' },
+    { label: t('dash.startChat'), desc: t('dash.startChat.desc'), href: '/kea/chat', icon: MessageSquare, color: 'from-blue-500/20 to-blue-600/10', border: 'border-blue-500/20', iconColor: 'text-blue-400' },
+    { label: t('dash.schemas'), desc: t('dash.schemas.desc'), href: '/kea/dashboard/schemas', icon: Sparkles, color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/20', iconColor: 'text-purple-400' },
+    { label: t('dash.monitor'), desc: t('dash.monitor.desc'), href: '/kea/dashboard/monitor', icon: Activity, color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/20', iconColor: 'text-emerald-400' },
+    { label: t('dash.export'), desc: t('dash.export.desc'), href: '/kea/dashboard/export', icon: Download, color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/20', iconColor: 'text-amber-400' },
+    { label: t('dash.users'), desc: t('dash.users.desc'), href: '/kea/dashboard/users', icon: Users, color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/20', iconColor: 'text-cyan-400' },
+    { label: t('dash.alerts'), desc: t('dash.alerts.desc'), href: '/kea/dashboard/alerts', icon: AlertTriangle, color: 'from-red-500/20 to-red-600/10', border: 'border-red-500/20', iconColor: 'text-red-400' },
   ];
 
   return (
@@ -242,13 +244,13 @@ export default function DashboardPage() {
             {greeting}, {user?.full_name?.split(' ')[0] || 'there'}
           </h1>
           <p className="text-sm text-white/30 mt-0.5">
-            {organization?.name} &middot; KEA Knowledge Extraction
+            {organization?.name} &middot; {t('dash.keTitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/kea/chat" className="kea-btn-primary text-sm flex items-center gap-2">
             <MessageSquare size={14} />
-            Start Session
+            {t('dash.startSession')}
           </Link>
         </div>
       </motion.div>
@@ -278,11 +280,11 @@ export default function DashboardPage() {
       {/* ═══ STATS ROW ═══ */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { label: 'Global Progress', value: `${globalCompletion}%`, color: globalCompletion > 66 ? 'text-emerald-400' : globalCompletion > 33 ? 'text-amber-400' : 'text-red-400' },
-          { label: 'Data Points', value: dataPoints.toLocaleString(), color: 'text-blue-400' },
-          { label: 'Sessions', value: sessionCount.toString(), color: 'text-purple-400' },
-          { label: 'Open Alerts', value: alertCount.toString(), color: alertCount > 0 ? 'text-red-400' : 'text-emerald-400' },
-          { label: 'Team Members', value: userCount.toString(), color: 'text-cyan-400' },
+          { label: t('dash.globalProgress'), value: `${globalCompletion}%`, color: globalCompletion > 66 ? 'text-emerald-400' : globalCompletion > 33 ? 'text-amber-400' : 'text-red-400' },
+          { label: t('dash.dataPoints'), value: dataPoints.toLocaleString(), color: 'text-blue-400' },
+          { label: t('dash.sessions'), value: sessionCount.toString(), color: 'text-purple-400' },
+          { label: t('dash.openAlerts'), value: alertCount.toString(), color: alertCount > 0 ? 'text-red-400' : 'text-emerald-400' },
+          { label: t('dash.teamMembers'), value: userCount.toString(), color: 'text-cyan-400' },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -309,18 +311,18 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-              Extraction Tracks
+              {t('dash.extractionTracks')}
             </h3>
             <Link href="/kea/chat" className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1">
-              View all <ArrowRight size={10} />
+              {t('dash.viewAll')} <ArrowRight size={10} />
             </Link>
           </div>
 
           {tracks.length === 0 ? (
             <div className="kea-card p-8 text-center">
               <LayoutGrid size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No tracks yet</p>
-              <p className="text-xs text-white/15 mt-1">Create a template in Schemas to get started</p>
+              <p className="text-sm text-white/30">{t('dash.noTracks')}</p>
+              <p className="text-xs text-white/15 mt-1">{t('dash.noTracks.desc')}</p>
             </div>
           ) : (
             tracks.map((track, i) => (
@@ -373,7 +375,7 @@ export default function DashboardPage() {
         >
           <div className="kea-card p-6 flex flex-col items-center h-full">
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4 self-start">
-              Discovery Progress
+              {t('dash.discoveryProgress')}
             </h3>
             <div className="flex-1 flex items-center justify-center">
               <ProgressRing percentage={globalCompletion} size={140} />
@@ -394,11 +396,11 @@ export default function DashboardPage() {
             <div className="w-full mt-4 pt-4 border-t border-white/[0.04] grid grid-cols-2 gap-3">
               <div className="text-center">
                 <p className="text-lg font-bold text-white">{templateCount}</p>
-                <p className="text-[10px] text-white/25">Templates</p>
+                <p className="text-[10px] text-white/25">{t('dash.templates')}</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-white">{tracks.length}</p>
-                <p className="text-[10px] text-white/25">Tracks</p>
+                <p className="text-[10px] text-white/25">{t('dash.tracks')}</p>
               </div>
             </div>
           </div>
@@ -413,12 +415,12 @@ export default function DashboardPage() {
         >
           <div className="kea-card p-5 h-full flex flex-col">
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
-              Recent Activity
+              {t('dash.recentActivity')}
             </h3>
             <div className="flex-1 space-y-1 overflow-y-auto">
               {activities.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center py-8">
-                  <p className="text-sm text-white/20">No activity yet</p>
+                  <p className="text-sm text-white/20">{t('dash.noActivity')}</p>
                 </div>
               ) : (
                 activities.map((item, i) => {
@@ -457,8 +459,8 @@ export default function DashboardPage() {
                 <Rocket size={18} className="text-purple-400" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-white">Deploy to Central</p>
-                <p className="text-[11px] text-white/25">Push extracted data to Blackwolf CRM</p>
+                <p className="text-sm font-semibold text-white">{t('dash.deployCentral')}</p>
+                <p className="text-[11px] text-white/25">{t('dash.deployCentral.desc')}</p>
               </div>
               <ArrowRight size={14} className="text-white/15" />
             </div>
@@ -472,8 +474,8 @@ export default function DashboardPage() {
                 <FileText size={18} className="text-emerald-400" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-white">Create Template</p>
-                <p className="text-[11px] text-white/25">Design extraction schemas with AI</p>
+                <p className="text-sm font-semibold text-white">{t('dash.createTemplate')}</p>
+                <p className="text-[11px] text-white/25">{t('dash.createTemplate.desc')}</p>
               </div>
               <ArrowRight size={14} className="text-white/15" />
             </div>
@@ -487,8 +489,8 @@ export default function DashboardPage() {
                 <Settings size={18} className="text-white/40" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-white">Settings</p>
-                <p className="text-[11px] text-white/25">Organization & preferences</p>
+                <p className="text-sm font-semibold text-white">{t('dash.settings')}</p>
+                <p className="text-[11px] text-white/25">{t('dash.settings.desc')}</p>
               </div>
               <ArrowRight size={14} className="text-white/15" />
             </div>

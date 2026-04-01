@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/kea/supabase-client';
 import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { useKeaLang, localeConfig, useT, type KeaLocale } from '@/lib/kea/i18n';
+
+const locales: KeaLocale[] = ['en', 'bg', 'es'];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,6 +14,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { locale, setLocale } = useKeaLang();
+  const t = useT();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +47,30 @@ export default function LoginPage() {
 
   return (
     <form onSubmit={handleLogin} className="space-y-5">
+      {/* Language selector */}
+      <div className="flex justify-center mb-2">
+        <div className="inline-flex items-center gap-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-1">
+          {locales.map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              onClick={() => setLocale(loc)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                locale === loc
+                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
+                  : 'text-white/35 hover:text-white/60'
+              }`}
+            >
+              <span>{localeConfig[loc].flag}</span>
+              <span>{localeConfig[loc].short}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="text-center mb-6">
-        <h2 className="text-lg font-semibold text-white">Welcome back</h2>
-        <p className="text-sm text-white/40 mt-1">Sign in to KEA</p>
+        <h2 className="text-lg font-semibold text-white">{t('login.welcomeBack')}</h2>
+        <p className="text-sm text-white/40 mt-1">{t('login.signIn')}</p>
       </div>
 
       {error && (
@@ -59,7 +85,7 @@ export default function LoginPage() {
 
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-          Email
+          {t('login.email')}
         </label>
         <input
           type="email"
@@ -74,7 +100,7 @@ export default function LoginPage() {
 
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-          Password
+          {t('login.password')}
         </label>
         <div className="relative">
           <input
@@ -105,14 +131,14 @@ export default function LoginPage() {
           <Loader2 size={18} className="animate-spin" />
         ) : (
           <>
-            Sign In
+            {t('login.submit')}
             <ArrowRight size={16} />
           </>
         )}
       </button>
 
       <p className="text-center text-xs text-white/20 mt-4">
-        Users are created by the admin from the Clients panel.
+        {t('login.adminNote')}
       </p>
     </form>
   );

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
 import { supabase } from '@/lib/kea/supabase-client';
+import { useKeaLang, useT } from '@/lib/kea/i18n';
 
 interface TrackData {
   id: string;
@@ -46,6 +47,8 @@ export default function ChatHubPage() {
   const organization = useAuthStore((s) => s.organization);
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
+  const locale = useKeaLang((s) => s.locale);
+  const t = useT();
 
   // Load tracks and sessions from Supabase
   useEffect(() => {
@@ -122,6 +125,7 @@ export default function ChatHubPage() {
           message: '__START_SESSION__',
           organizationId: organization.id,
           userId: user.id,
+          language: locale,
         }),
       });
 
@@ -213,7 +217,7 @@ export default function ChatHubPage() {
       {/* Track selection */}
       <div>
         <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4">
-          Select Track
+          {t('chat.selectTrack')}
         </h3>
         {tracks.length === 0 ? (
           <div className="kea-card p-8 text-center">
@@ -291,7 +295,7 @@ export default function ChatHubPage() {
             ) : (
               <Plus size={18} />
             )}
-            Start New Session
+            {t('chat.newSession')}
             <ArrowRight size={16} />
           </button>
         </motion.div>
@@ -300,7 +304,7 @@ export default function ChatHubPage() {
       {/* Recent sessions */}
       <div>
         <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4">
-          Recent Sessions
+          {t('chat.previousSessions')}
         </h3>
         <div className="kea-card overflow-hidden">
           {sessions.length === 0 ? (
