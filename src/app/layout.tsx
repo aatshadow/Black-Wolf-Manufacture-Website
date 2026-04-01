@@ -25,6 +25,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans bg-[#050510] text-[#E4E4E7] antialiased`} suppressHydrationWarning>
+        {/* Catch Supabase auth redirect tokens in URL hash and redirect to KEA */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+              window.location.href = '/kea/dashboard' + window.location.hash;
+            }
+          })();
+        `}} />
         <LangFromPath>
           <SiteShell>{children}</SiteShell>
         </LangFromPath>
