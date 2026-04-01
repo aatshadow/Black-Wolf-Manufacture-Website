@@ -5,16 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2,
   Plus,
-  Users,
-  Database,
   ChevronRight,
   Loader2,
   Check,
-  X,
   Trash2,
   UserPlus,
-  Search,
   FileText,
+  Copy,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
 import { supabase } from '@/lib/kea/supabase-client';
@@ -34,6 +33,7 @@ interface TemplateOption {
   id: string;
   name: string;
   industry: string;
+  organization_id: string | null;
 }
 
 interface ClientUser {
@@ -53,24 +53,27 @@ export default function ClientsPage() {
   const [clientUsers, setClientUsers] = useState<Record<string, ClientUser[]>>({});
   const [loadingUsers, setLoadingUsers] = useState<string | null>(null);
 
-  // Create form
+  // Create client form
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
   const [newIndustry, setNewIndustry] = useState('manufacturing');
-  const [newLanguage, setNewLanguage] = useState('es');
+  const [newLanguage, setNewLanguage] = useState('en');
   const [newTemplateId, setNewTemplateId] = useState('');
   const [creating, setCreating] = useState(false);
 
   // Add user form
   const [addingUserTo, setAddingUserTo] = useState<string | null>(null);
   const [newUserName, setNewUserName] = useState('');
-  const [newUserRole, setNewUserRole] = useState('viewer');
+  const [newUserRole, setNewUserRole] = useState('domain_expert');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
 
+  // Template cloning
+  const [cloningTemplate, setCloningTemplate] = useState<string | null>(null);
+
   const fetchClients = useCallback(async () => {
-    // Load all organizations (clients)
     const { data } = await supabase
       .from('organizations')
       .select('*')
@@ -80,9 +83,10 @@ export default function ClientsPage() {
   }, []);
 
   const fetchTemplates = useCallback(async () => {
+    // Load master templates (admin's org or no org) as source templates
     const { data } = await supabase
       .from('templates')
-      .select('id, name, industry')
+      .select('id, name, industry, organization_id')
       .order('created_at', { ascending: false });
     if (data) setTemplates(data);
   }, []);
@@ -115,6 +119,11 @@ export default function ClientsPage() {
     }
   };
 
+  // Master templates = templates belonging to admin's org (not client orgs)
+  const masterTemplates = templates.filter(
+    (t) => !t.organization_id || t.organization_id === organization?.id
+  );
+
   const handleCreateClient = async () => {
     if (!newName.trim() || !newSlug.trim()) return;
     setCreating(true);
@@ -127,52 +136,81 @@ export default function ClientsPage() {
         industry: newIndustry,
         language: newLanguage,
         status: 'active',
-        active_template_id: newTemplateId || null,
       })
       .select('*')
       .single();
 
     if (!error && newOrg) {
-      // If template selected, also assign it to the org
+      // Clone template to the new org if selected
       if (newTemplateId) {
-        await supabase
-          .from('templates')
-          .update({ organization_id: newOrg.id })
-          .eq('id', newTemplateId);
+        await cloneTemplateToOrg(newTemplateId, newOrg.id);
       }
       setNewName('');
       setNewSlug('');
       setNewIndustry('manufacturing');
-      setNewLanguage('es');
+      setNewLanguage('en');
       setNewTemplateId('');
       setShowCreate(false);
       fetchClients();
+      fetchTemplates();
     } else {
       alert(`Error: ${error?.message}`);
     }
     setCreating(false);
   };
 
-  const handleAssignTemplate = async (clientId: string, templateId: string) => {
-    await supabase
-      .from('organizations')
-      .update({ active_template_id: templateId || null })
-      .eq('id', clientId);
+  const cloneTemplateToOrg = async (templateId: string, orgId: string) => {
+    setCloningTemplate(orgId);
+    try {
+      const res = await fetch('/api/kea/clone-template', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId, targetOrganizationId: orgId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        fetchClients();
+        fetchTemplates();
+      } else {
+        alert(`Error cloning template: ${result.error}`);
+      }
+    } catch (err) {
+      alert(`Error: ${err}`);
+    }
+    setCloningTemplate(null);
+  };
 
-    if (templateId) {
+  const handleAssignTemplate = async (clientId: string, templateId: string) => {
+    if (!templateId) {
+      // Remove template assignment
       await supabase
-        .from('templates')
-        .update({ organization_id: clientId })
-        .eq('id', templateId);
+        .from('organizations')
+        .update({ active_template_id: null })
+        .eq('id', clientId);
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, active_template_id: null } : c))
+      );
+      return;
     }
 
-    setClients((prev) =>
-      prev.map((c) => (c.id === clientId ? { ...c, active_template_id: templateId || null } : c))
-    );
+    // Check if this is a master template — if so, clone it
+    const tmpl = templates.find((t) => t.id === templateId);
+    if (tmpl && tmpl.organization_id !== clientId) {
+      await cloneTemplateToOrg(templateId, clientId);
+    } else {
+      // Already a client-owned template, just set it
+      await supabase
+        .from('organizations')
+        .update({ active_template_id: templateId })
+        .eq('id', clientId);
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, active_template_id: templateId } : c))
+      );
+    }
   };
 
   const handleAddUser = async (clientId: string) => {
-    if (!newUserName.trim()) return;
+    if (!newUserName.trim() || !newUserEmail.trim() || !newUserPassword.trim()) return;
     setCreatingUser(true);
 
     try {
@@ -181,8 +219,8 @@ export default function ClientsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: newUserName.trim(),
-          email: newUserEmail.trim() || undefined,
-          password: newUserPassword.trim() || undefined,
+          email: newUserEmail.trim(),
+          password: newUserPassword.trim(),
           organizationId: clientId,
           role: newUserRole,
         }),
@@ -199,7 +237,8 @@ export default function ClientsPage() {
         setNewUserName('');
         setNewUserEmail('');
         setNewUserPassword('');
-        setNewUserRole('viewer');
+        setNewUserRole('domain_expert');
+        setShowNewPassword(false);
         setAddingUserTo(null);
       } else {
         alert(`Error: ${result.error}`);
@@ -211,17 +250,27 @@ export default function ClientsPage() {
   };
 
   const handleRemoveUser = async (clientId: string, userId: string) => {
-    if (!confirm('Remove this user?')) return;
-    await supabase.from('user_profiles').delete().eq('id', userId);
-    fetch('/api/kea/create-user', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    }).catch(() => {});
-    setClientUsers((prev) => ({
-      ...prev,
-      [clientId]: (prev[clientId] || []).filter((u) => u.id !== userId),
-    }));
+    if (!confirm('Remove this user? This will delete their account and profile.')) return;
+
+    try {
+      // Delete via API (handles auth user + profile cleanup)
+      const res = await fetch('/api/kea/create-user', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      const result = await res.json();
+
+      // Also delete profile
+      await supabase.from('user_profiles').delete().eq('id', userId);
+
+      setClientUsers((prev) => ({
+        ...prev,
+        [clientId]: (prev[clientId] || []).filter((u) => u.id !== userId),
+      }));
+    } catch (err) {
+      alert(`Error: ${err}`);
+    }
   };
 
   const roleLabels: Record<string, string> = {
@@ -230,6 +279,14 @@ export default function ClientsPage() {
     domain_expert: 'Domain Expert',
     manager: 'Manager',
     viewer: 'Viewer',
+  };
+
+  const roleBadge: Record<string, string> = {
+    admin: 'kea-badge-red',
+    consultant: 'kea-badge-blue',
+    domain_expert: 'kea-badge-amber',
+    manager: 'kea-badge-blue',
+    viewer: 'kea-badge-green',
   };
 
   if (loading) {
@@ -315,9 +372,9 @@ export default function ClientsPage() {
                     value={newLanguage}
                     onChange={(e) => setNewLanguage(e.target.value)}
                   >
-                    <option value="es">Spanish</option>
                     <option value="en">English</option>
                     <option value="bg">Bulgarian</option>
+                    <option value="es">Spanish</option>
                   </select>
                 </div>
                 <div>
@@ -328,10 +385,15 @@ export default function ClientsPage() {
                     onChange={(e) => setNewTemplateId(e.target.value)}
                   >
                     <option value="">No template</option>
-                    {templates.map((t) => (
+                    {masterTemplates.map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
                   </select>
+                  {newTemplateId && (
+                    <p className="text-[10px] text-blue-400/50 mt-1 flex items-center gap-1">
+                      <Copy size={9} /> Template will be cloned for this client
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-end">
                   <button
@@ -360,7 +422,8 @@ export default function ClientsPage() {
           clients.map((client, i) => {
             const isExpanded = expandedClient === client.id;
             const users = clientUsers[client.id] || [];
-            const assignedTemplate = templates.find((t) => t.id === client.active_template_id);
+            const clientTemplate = templates.find((t) => t.id === client.active_template_id);
+            const isCloning = cloningTemplate === client.id;
 
             return (
               <motion.div
@@ -392,9 +455,9 @@ export default function ClientsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    {assignedTemplate ? (
+                    {clientTemplate ? (
                       <span className="kea-badge kea-badge-blue text-[10px] flex items-center gap-1">
-                        <FileText size={10} /> {assignedTemplate.name.slice(0, 30)}
+                        <FileText size={10} /> {clientTemplate.name.slice(0, 30)}
                       </span>
                     ) : (
                       <span className="text-[10px] text-white/20">No template</span>
@@ -419,17 +482,32 @@ export default function ClientsPage() {
                       <div className="px-5 pb-5 pt-2 border-t border-white/[0.04] space-y-4">
                         {/* Template assignment */}
                         <div>
-                          <label className="block text-xs text-white/40 mb-1.5">Assigned Template</label>
-                          <select
-                            className="kea-input text-sm w-full max-w-md"
-                            value={client.active_template_id || ''}
-                            onChange={(e) => handleAssignTemplate(client.id, e.target.value)}
-                          >
-                            <option value="">No template assigned</option>
-                            {templates.map((t) => (
-                              <option key={t.id} value={t.id}>{t.name} — {t.industry}</option>
-                            ))}
-                          </select>
+                          <label className="block text-xs text-white/40 mb-1.5">Assign Template</label>
+                          <div className="flex items-center gap-3">
+                            <select
+                              className="kea-input text-sm flex-1 max-w-md"
+                              value=""
+                              onChange={(e) => handleAssignTemplate(client.id, e.target.value)}
+                            >
+                              <option value="">
+                                {clientTemplate ? `Current: ${clientTemplate.name}` : 'Select a template to clone...'}
+                              </option>
+                              {masterTemplates.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name} — {t.industry}</option>
+                              ))}
+                            </select>
+                            {isCloning && (
+                              <div className="flex items-center gap-2 text-xs text-blue-400">
+                                <Loader2 size={14} className="animate-spin" />
+                                Cloning template...
+                              </div>
+                            )}
+                          </div>
+                          {clientTemplate && (
+                            <p className="text-[10px] text-emerald-400/50 mt-1 flex items-center gap-1">
+                              <Check size={9} /> Template cloned and assigned
+                            </p>
+                          )}
                         </div>
 
                         {/* Users list */}
@@ -451,7 +529,7 @@ export default function ClientsPage() {
                               <Loader2 size={16} className="text-blue-400 animate-spin" />
                             </div>
                           ) : users.length === 0 ? (
-                            <p className="text-xs text-white/20 py-3">No users yet</p>
+                            <p className="text-xs text-white/20 py-3">No users yet. Add users so they can log in and chat.</p>
                           ) : (
                             <div className="space-y-1">
                               {users.map((u) => (
@@ -465,9 +543,7 @@ export default function ClientsPage() {
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-white/70">{u.full_name}</p>
                                   </div>
-                                  <span className={`kea-badge text-[9px] ${
-                                    u.role === 'admin' ? 'kea-badge-red' : u.role === 'consultant' ? 'kea-badge-blue' : 'kea-badge-green'
-                                  }`}>
+                                  <span className={`kea-badge text-[9px] ${roleBadge[u.role] || 'kea-badge-green'}`}>
                                     {roleLabels[u.role] || u.role}
                                   </span>
                                   <button
@@ -481,7 +557,7 @@ export default function ClientsPage() {
                             </div>
                           )}
 
-                          {/* Add user inline form */}
+                          {/* Add user form */}
                           <AnimatePresence>
                             {addingUserTo === client.id && (
                               <motion.div
@@ -493,31 +569,17 @@ export default function ClientsPage() {
                                 <div className="mt-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                      <label className="block text-[10px] text-white/30 mb-1">Name *</label>
+                                      <label className="block text-[10px] text-white/30 mb-1">Full Name *</label>
                                       <input
                                         type="text"
                                         className="kea-input text-sm w-full"
-                                        placeholder="Full Name"
+                                        placeholder="John Smith"
                                         value={newUserName}
                                         onChange={(e) => setNewUserName(e.target.value)}
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-[10px] text-white/30 mb-1">Role</label>
-                                      <select
-                                        className="kea-input text-sm w-full"
-                                        value={newUserRole}
-                                        onChange={(e) => setNewUserRole(e.target.value)}
-                                      >
-                                        <option value="viewer">Viewer</option>
-                                        <option value="domain_expert">Domain Expert</option>
-                                        <option value="consultant">Consultant</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="admin">Admin</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] text-white/30 mb-1">Email <span className="text-white/15">(optional)</span></label>
+                                      <label className="block text-[10px] text-white/30 mb-1">Email *</label>
                                       <input
                                         type="email"
                                         className="kea-input text-sm w-full"
@@ -527,30 +589,53 @@ export default function ClientsPage() {
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-[10px] text-white/30 mb-1">Password <span className="text-white/15">(optional)</span></label>
-                                      <input
-                                        type="password"
+                                      <label className="block text-[10px] text-white/30 mb-1">Password *</label>
+                                      <div className="relative">
+                                        <input
+                                          type={showNewPassword ? 'text' : 'password'}
+                                          className="kea-input text-sm w-full pr-10"
+                                          placeholder="Login password"
+                                          value={newUserPassword}
+                                          onChange={(e) => setNewUserPassword(e.target.value)}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => setShowNewPassword(!showNewPassword)}
+                                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50"
+                                        >
+                                          {showNewPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="block text-[10px] text-white/30 mb-1">Role</label>
+                                      <select
                                         className="kea-input text-sm w-full"
-                                        placeholder="Password for login"
-                                        value={newUserPassword}
-                                        onChange={(e) => setNewUserPassword(e.target.value)}
-                                      />
+                                        value={newUserRole}
+                                        onChange={(e) => setNewUserRole(e.target.value)}
+                                      >
+                                        <option value="domain_expert">Domain Expert</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="consultant">Consultant</option>
+                                        <option value="viewer">Viewer</option>
+                                        <option value="admin">Admin</option>
+                                      </select>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2 justify-end">
                                     <button
-                                      onClick={() => setAddingUserTo(null)}
+                                      onClick={() => { setAddingUserTo(null); setNewUserName(''); setNewUserEmail(''); setNewUserPassword(''); }}
                                       className="kea-btn-secondary text-xs py-1.5 px-3"
                                     >
                                       Cancel
                                     </button>
                                     <button
                                       onClick={() => handleAddUser(client.id)}
-                                      disabled={!newUserName.trim() || creatingUser}
+                                      disabled={!newUserName.trim() || !newUserEmail.trim() || !newUserPassword.trim() || creatingUser}
                                       className="kea-btn-primary text-xs py-1.5 px-4 flex items-center gap-1.5 disabled:opacity-30"
                                     >
                                       {creatingUser ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                                      {creatingUser ? 'Creating...' : 'Add User'}
+                                      {creatingUser ? 'Creating...' : 'Create User'}
                                     </button>
                                   </div>
                                 </div>
