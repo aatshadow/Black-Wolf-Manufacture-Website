@@ -20,7 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .single();
 
     if (!profile) {
-      window.location.href = '/kea/onboarding';
+      // No profile exists — sign out and redirect to login
+      await supabase.auth.signOut();
+      window.location.href = '/kea/login';
       return;
     }
 
