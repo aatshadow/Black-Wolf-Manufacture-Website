@@ -5,19 +5,14 @@ import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send,
-  Paperclip,
   ChevronLeft,
-  MoreHorizontal,
   Loader2,
   Menu,
   X,
   Check,
-  Pause,
-  Play,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
-import { supabase } from '@/lib/kea/supabase-client';
 import { useKeaLang, useT } from '@/lib/kea/i18n';
 
 interface ChatMessage {
@@ -74,71 +69,26 @@ export default function ChatSessionPage() {
   const locale = useKeaLang((s) => s.locale);
   const t = useT();
 
-  // Load session, messages, and progress
+  // Load session data via API
   const loadSession = useCallback(async () => {
     if (!sessionId) return;
 
-    // Load session with track
-    const { data: sessionData } = await supabase
-      .from('sessions')
-      .select('*, track:tracks(id, name, code, conversation_style)')
-      .eq('id', sessionId)
-      .single();
+    try {
+      const res = await fetch(`/api/kea/chat-data?sessionId=${sessionId}&organizationId=${organization?.id || ''}`);
+      const data = await res.json();
 
-    if (sessionData) {
-      setSession(sessionData as SessionInfo);
-
-      // Load messages
-      const { data: msgData } = await supabase
-        .from('messages')
-        .select('id, role, content, created_at')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
-
-      if (msgData) setMessages(msgData as ChatMessage[]);
-
-      // Load block progress
-      const trackId = (sessionData as SessionInfo).track_id;
-      const { data: blockData } = await supabase
-        .from('schema_blocks')
-        .select('id, name, code, track_id')
-        .eq('track_id', trackId)
-        .order('display_order');
-
-      if (blockData) {
-        // Get extraction instances for completeness
-        const blockIds = blockData.map((b) => b.id);
-        const { data: instances } = await supabase
-          .from('extraction_instances')
-          .select('block_id, completeness_pct')
-          .in('block_id', blockIds);
-
-        const instanceMap = new Map(
-          (instances || []).map((i) => [i.block_id, i.completeness_pct])
-        );
-
-        setBlocks(
-          blockData.map((b) => ({
-            id: b.id,
-            name: b.name,
-            code: b.code,
-            completeness_pct: instanceMap.get(b.id) || 0,
-          }))
-        );
-
-        // Load discovered entities
-        const { data: entityData } = await supabase
-          .from('extraction_instances')
-          .select('instance_label, completeness_pct')
-          .in('block_id', blockIds)
-          .not('instance_label', 'is', null);
-
-        if (entityData) setEntities(entityData as DiscoveredEntity[]);
+      if (data.session) {
+        setSession(data.session as SessionInfo);
+        setMessages((data.messages || []) as ChatMessage[]);
+        setBlocks(data.blocks || []);
+        setEntities(data.entities || []);
       }
+    } catch (err) {
+      console.error('Failed to load session:', err);
     }
 
     setLoading(false);
-  }, [sessionId]);
+  }, [sessionId, organization?.id]);
 
   useEffect(() => {
     loadSession();
@@ -148,58 +98,26 @@ export default function ChatSessionPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Focus input after loading
   useEffect(() => {
     if (!loading) inputRef.current?.focus();
   }, [loading]);
 
-  // Refresh progress periodically (extraction happens in background)
+  // Refresh progress every 10s
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isStreaming && session?.track_id) {
-        // Silently reload block progress
-        const reloadProgress = async () => {
-          const { data: blockData } = await supabase
-            .from('schema_blocks')
-            .select('id, name, code')
-            .eq('track_id', session.track_id)
-            .order('display_order');
-
-          if (blockData) {
-            const blockIds = blockData.map((b) => b.id);
-            const { data: instances } = await supabase
-              .from('extraction_instances')
-              .select('block_id, completeness_pct, instance_label')
-              .in('block_id', blockIds);
-
-            const instanceMap = new Map(
-              (instances || []).map((i) => [i.block_id, i.completeness_pct])
-            );
-
-            setBlocks(
-              blockData.map((b) => ({
-                id: b.id,
-                name: b.name,
-                code: b.code,
-                completeness_pct: instanceMap.get(b.id) || 0,
-              }))
-            );
-
-            const ents = (instances || [])
-              .filter((i) => i.instance_label)
-              .map((i) => ({
-                instance_label: i.instance_label,
-                completeness_pct: i.completeness_pct,
-              }));
-            setEntities(ents);
-          }
-        };
-        reloadProgress();
+      if (!isStreaming && sessionId) {
+        fetch(`/api/kea/chat-data?sessionId=${sessionId}&organizationId=${organization?.id || ''}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.blocks) setBlocks(data.blocks);
+            if (data.entities) setEntities(data.entities);
+          })
+          .catch(() => {});
       }
-    }, 10000); // Every 10 seconds
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [isStreaming, session?.track_id]);
+  }, [isStreaming, sessionId, organization?.id]);
 
   const handleSend = async () => {
     if (!input.trim() || isStreaming || !session || !user || !organization) return;
@@ -216,7 +134,6 @@ export default function ChatSessionPage() {
     setInput('');
     setIsStreaming(true);
 
-    // Placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
     setMessages([
       ...updatedMessages,
@@ -272,9 +189,7 @@ export default function ChatSessionPage() {
                 prev.map((m) => (m.id === assistantId ? { ...m, id: data.messageId } : m))
               );
             }
-          } catch {
-            // Skip malformed chunks
-          }
+          } catch { /* skip */ }
         }
       }
 
@@ -316,32 +231,25 @@ export default function ChatSessionPage() {
     }
   };
 
-  const toggleSessionStatus = async () => {
-    if (!session) return;
-    const newStatus = session.status === 'active' ? 'paused' : 'active';
-    await supabase.from('sessions').update({ status: newStatus }).eq('id', session.id);
-    setSession({ ...session, status: newStatus });
-  };
-
   const overallCompletion = blocks.length
     ? Math.round(blocks.reduce((sum, b) => sum + b.completeness_pct, 0) / blocks.length)
     : 0;
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#050510] flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-blue-400" />
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={24} className="animate-spin text-blue-400" />
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="fixed inset-0 bg-[#050510] flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <p className="text-white/40 mb-4">Session not found</p>
+          <p className="text-white/40 mb-4">{t('chat.sessionNotFound')}</p>
           <Link href="/kea/chat" className="kea-btn-primary">
-            Back to Chat Hub
+            {t('chat.backToChat')}
           </Link>
         </div>
       </div>
@@ -355,7 +263,7 @@ export default function ChatSessionPage() {
           href="/kea/chat"
           className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors"
         >
-          <ChevronLeft size={16} /> Back to Chat Hub
+          <ChevronLeft size={16} /> {t('chat.backToChat')}
         </Link>
       </div>
 
@@ -367,13 +275,13 @@ export default function ChatSessionPage() {
           {session.track?.name || 'Session'}
         </h3>
         <p className="text-xs text-white/25 mt-1">
-          {new Date(session.created_at).toLocaleDateString()} &bull; {overallCompletion}% overall
+          {new Date(session.created_at).toLocaleDateString()} &bull; {overallCompletion}% {t('chat.overall')}
         </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 space-y-3">
         <p className="text-[10px] font-semibold text-white/20 uppercase tracking-widest">
-          Block Progress
+          {t('chat.blockProgress')}
         </p>
         {blocks.map((block) => (
           <div key={block.id} className="space-y-1.5">
@@ -402,7 +310,7 @@ export default function ChatSessionPage() {
       {entities.length > 0 && (
         <div className="p-4 border-t border-white/[0.06]">
           <p className="text-[10px] font-semibold text-white/20 uppercase tracking-widest mb-2">
-            Discovered Entities
+            {t('chat.discoveredEntities')}
           </p>
           {entities.map((entity) => (
             <div
@@ -419,9 +327,9 @@ export default function ChatSessionPage() {
   );
 
   return (
-    <div className="fixed inset-0 bg-[#050510] flex" style={{ marginLeft: 0 }}>
+    <div className="flex -mx-6 -my-6" style={{ height: 'calc(100vh - 56px)' }}>
       {/* Progress Sidebar (desktop) */}
-      <aside className="hidden lg:flex flex-col w-[280px] border-r border-white/[0.06] bg-[#050510]/95 backdrop-blur-xl">
+      <aside className="hidden lg:flex flex-col w-[260px] border-r border-white/[0.06] bg-[#050510]/50 shrink-0">
         <SidebarContent />
       </aside>
 
@@ -437,10 +345,10 @@ export default function ChatSessionPage() {
               onClick={() => setSidebarOpen(false)}
             />
             <motion.aside
-              initial={{ x: -280 }}
+              initial={{ x: -260 }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] bg-[#050510] border-r border-white/[0.06] z-50 lg:hidden flex flex-col"
+              exit={{ x: -260 }}
+              className="fixed left-0 top-0 bottom-0 w-[260px] bg-[#050510] border-r border-white/[0.06] z-50 lg:hidden flex flex-col"
             >
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -455,15 +363,15 @@ export default function ChatSessionPage() {
       </AnimatePresence>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Chat header */}
-        <header className="h-14 border-b border-white/[0.06] bg-[#050510]/80 backdrop-blur-xl flex items-center justify-between px-4">
+        <header className="h-12 border-b border-white/[0.06] bg-[#050510]/80 backdrop-blur-xl flex items-center justify-between px-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               className="lg:hidden text-white/40 hover:text-white/70"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
             <div>
               <h2 className="text-sm font-semibold text-white">
@@ -472,40 +380,28 @@ export default function ChatSessionPage() {
               <div className="flex items-center gap-2">
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    session.status === 'active' ? 'bg-emerald-400 kea-pulse' : 'bg-amber-400'
+                    session.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'
                   }`}
                 />
                 <span className="text-[10px] text-white/25">
-                  {isStreaming ? 'KEA is thinking...' : session.status === 'active' ? 'Session active' : 'Session paused'}
+                  {isStreaming ? t('chat.keaThinking') : session.status === 'active' ? t('chat.sessionActive') : t('chat.sessionPaused')}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleSessionStatus}
-              className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-white/60 transition-all"
-              title={session.status === 'active' ? 'Pause session' : 'Resume session'}
-            >
-              {session.status === 'active' ? <Pause size={14} /> : <Play size={14} />}
-            </button>
-            <button className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-white/60 transition-all">
-              <MoreHorizontal size={16} />
-            </button>
-          </div>
         </header>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
           {messages.map((msg) => (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] ${
+                className={`max-w-[80%] ${
                   msg.role === 'user'
                     ? 'bg-blue-600/20 border border-blue-500/15 rounded-2xl rounded-br-md'
                     : 'bg-white/[0.03] border border-white/[0.06] rounded-2xl rounded-bl-md'
@@ -520,7 +416,7 @@ export default function ChatSessionPage() {
                     )}
                 </p>
                 <p className="text-[10px] text-white/15 mt-2 text-right">
-                  {new Date(msg.created_at).toLocaleTimeString('en', {
+                  {new Date(msg.created_at).toLocaleTimeString(undefined, {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false,
@@ -533,11 +429,8 @@ export default function ChatSessionPage() {
         </div>
 
         {/* Input bar */}
-        <div className="border-t border-white/[0.06] p-4 bg-[#050510]/90 backdrop-blur-xl">
-          <div className="flex items-end gap-3 max-w-[900px] mx-auto">
-            <button className="w-10 h-10 shrink-0 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/30 hover:text-white/60 hover:border-white/10 transition-all mb-0.5">
-              <Paperclip size={18} />
-            </button>
+        <div className="border-t border-white/[0.06] p-3 bg-[#050510]/90 backdrop-blur-xl shrink-0">
+          <div className="flex items-end gap-2 max-w-[800px] mx-auto">
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
@@ -546,7 +439,7 @@ export default function ChatSessionPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t('chat.typeMessage')}
                 rows={1}
-                className="kea-input resize-none min-h-[44px] max-h-[120px] pr-12"
+                className="kea-input resize-none min-h-[42px] max-h-[120px] pr-4"
                 style={{
                   height: 'auto',
                   overflowY: input.split('\n').length > 4 ? 'auto' : 'hidden',
@@ -570,8 +463,8 @@ export default function ChatSessionPage() {
               )}
             </button>
           </div>
-          <p className="text-center text-[10px] text-white/15 mt-2">
-            Shift+Enter for new line &bull; KEA extracts knowledge automatically
+          <p className="text-center text-[10px] text-white/15 mt-1.5">
+            {t('chat.inputHint')}
           </p>
         </div>
       </div>

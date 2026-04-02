@@ -6,17 +6,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   MessageSquare,
-  Plus,
-  Clock,
   ArrowRight,
-  Mic,
-  Search,
+  Clock,
   Factory,
   Briefcase,
   Loader2,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
-import { supabase } from '@/lib/kea/supabase-client';
 import { useKeaLang, useT } from '@/lib/kea/i18n';
 
 interface TrackData {
@@ -25,8 +21,11 @@ interface TrackData {
   code: string;
   description: string | null;
   conversation_style: string;
-  target_role: string;
-  template_id: string;
+}
+
+interface TrackStats {
+  sessions: number;
+  completion: number;
 }
 
 interface SessionData {
@@ -35,93 +34,53 @@ interface SessionData {
   summary: string | null;
   created_at: string;
   track_id: string;
-  track?: { name: string; code: string };
+  trackName?: string;
+  trackCode?: string;
 }
 
 export default function ChatHubPage() {
   const [tracks, setTracks] = useState<TrackData[]>([]);
   const [sessions, setSessions] = useState<SessionData[]>([]);
-  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
-  const [trackStats, setTrackStats] = useState<Record<string, { sessions: number; completion: number }>>({});
-  const [creating, setCreating] = useState(false);
+  const [trackStats, setTrackStats] = useState<Record<string, TrackStats>>({});
+  const [creating, setCreating] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const organization = useAuthStore((s) => s.organization);
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
   const locale = useKeaLang((s) => s.locale);
   const t = useT();
 
-  // Load tracks and sessions from Supabase
+  // Load tracks, sessions, and stats via API
   useEffect(() => {
-    const loadData = async () => {
-      if (!organization?.id) return;
+    if (!organization?.id) return;
 
-      // Load tracks from templates belonging to this org
-      const { data: templates } = await supabase
-        .from('templates')
-        .select('id')
-        .eq('organization_id', organization.id);
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/kea/chat-data?organizationId=${organization.id}`);
+        const data = await res.json();
 
-      if (templates?.length) {
-        const templateIds = templates.map((t) => t.id);
-        const { data: trackData } = await supabase
-          .from('tracks')
-          .select('*')
-          .in('template_id', templateIds)
-          .order('display_order');
-
-        if (trackData) setTracks(trackData);
-
-        // Load sessions with track info
-        const trackIds = trackData?.map((t) => t.id) || [];
-        if (trackIds.length) {
-          const { data: sessionData } = await supabase
-            .from('sessions')
-            .select('*, track:tracks(name, code)')
-            .in('track_id', trackIds)
-            .order('created_at', { ascending: false })
-            .limit(20);
-
-          if (sessionData) setSessions(sessionData as SessionData[]);
-
-          // Load stats per track
-          const stats: Record<string, { sessions: number; completion: number }> = {};
-          for (const track of trackData || []) {
-            const { count } = await supabase
-              .from('sessions')
-              .select('*', { count: 'exact', head: true })
-              .eq('track_id', track.id);
-
-            // Get progress snapshot
-            const { data: progress } = await supabase
-              .from('progress_snapshots')
-              .select('completeness_pct')
-              .eq('track_id', track.id)
-              .is('block_id', null)
-              .order('snapshot_date', { ascending: false })
-              .limit(1);
-
-            stats[track.id] = {
-              sessions: count || 0,
-              completion: progress?.[0]?.completeness_pct || 0,
-            };
-          }
-          setTrackStats(stats);
-        }
+        if (data.tracks) setTracks(data.tracks);
+        if (data.sessions) setSessions(data.sessions);
+        if (data.trackStats) setTrackStats(data.trackStats);
+      } catch (err) {
+        console.error('Failed to load chat data:', err);
       }
+      setLoading(false);
     };
-    loadData();
+
+    load();
   }, [organization?.id]);
 
-  const startNewSession = async () => {
-    if (!selectedTrack || !user?.id || !organization?.id || creating) return;
-    setCreating(true);
+  const startSession = async (trackId: string) => {
+    if (!user?.id || !organization?.id || creating) return;
+    setCreating(trackId);
 
     try {
       const response = await fetch('/api/kea/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trackId: selectedTrack,
+          trackId,
           message: '__START_SESSION__',
           organizationId: organization.id,
           userId: user.id,
@@ -148,13 +107,10 @@ export default function ChatHubPage() {
           try {
             const data = JSON.parse(line.slice(6));
             if (data.sessionId) newSessionId = data.sessionId;
-          } catch {
-            // skip malformed chunks
-          }
+          } catch { /* skip */ }
         }
       }
 
-      // Process remaining buffer
       if (buffer.trim().startsWith('data: ')) {
         try {
           const data = JSON.parse(buffer.trim().slice(6));
@@ -168,199 +124,139 @@ export default function ChatHubPage() {
     } catch (err) {
       console.error('Failed to create session:', err);
     } finally {
-      setCreating(false);
+      setCreating(null);
     }
   };
 
-  const trackIcons: Record<string, typeof Factory> = {
-    open_ended: Factory,
-    guided: Briefcase,
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={24} className="animate-spin text-blue-400" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-[1200px] space-y-8">
-      {/* Ask KEA section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="kea-card kea-glow-border p-6"
-      >
-        <h2 className="text-lg font-bold text-white mb-4 tracking-wide">ASK KEA</h2>
-        <div className="flex items-center gap-3 mb-4">
-          <button className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all">
-            <Mic size={18} />
-          </button>
-          <div className="flex-1 flex items-center gap-[2px] h-8">
-            {Array.from({ length: 40 }).map((_, i) => (
-              <motion.div
-                key={i}
-                className="w-[2px] bg-blue-400/40 rounded-full"
-                animate={{ height: [4, Math.random() * 20 + 4, 4] }}
-                transition={{ duration: 1.5 + Math.random(), repeat: Infinity, delay: i * 0.05 }}
-                style={{ height: 4 }}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="relative">
-          <input
-            type="text"
-            className="kea-input pl-4 pr-12"
-            placeholder="Search in extracted knowledge..."
-          />
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white/60 transition-colors">
-            <Search size={16} />
-          </button>
-        </div>
-      </motion.div>
-
+    <div className="max-w-lg mx-auto space-y-6">
       {/* Track selection */}
       <div>
-        <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4">
-          {t('chat.selectTrack')}
+        <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
+          {t('chat.pickTrack')}
         </h3>
         {tracks.length === 0 ? (
           <div className="kea-card p-8 text-center">
             {user?.role === 'admin' ? (
               <>
-                <p className="text-sm text-white/40 mb-2">No tracks available yet.</p>
-                <p className="text-xs text-white/25">
-                  Create a template first in{' '}
-                  <Link href="/kea/dashboard/schemas" className="text-blue-400 hover:underline">
-                    Schemas
-                  </Link>
-                </p>
+                <p className="text-sm text-white/40 mb-2">{t('dash.noTracks')}</p>
+                <Link href="/kea/dashboard/schemas" className="text-xs text-blue-400 hover:underline">
+                  {t('dash.noTracks.desc')}
+                </Link>
               </>
             ) : (
               <p className="text-sm text-white/40">{t('client.noTracksAssigned')}</p>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
             {tracks.map((track, i) => {
-              const Icon = trackIcons[track.conversation_style] || Factory;
-              const isSelected = selectedTrack === track.id;
+              const Icon = track.conversation_style === 'guided' ? Briefcase : Factory;
               const stats = trackStats[track.id] || { sessions: 0, completion: 0 };
+              const isCreating = creating === track.id;
+              const color =
+                stats.completion < 34 ? 'from-red-500/15 to-red-600/5 border-red-500/15' :
+                stats.completion < 67 ? 'from-amber-500/15 to-amber-600/5 border-amber-500/15' :
+                stats.completion < 100 ? 'from-blue-500/15 to-blue-600/5 border-blue-500/15' :
+                'from-emerald-500/15 to-emerald-600/5 border-emerald-500/15';
+
               return (
-                <motion.button
+                <motion.div
                   key={track.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  onClick={() => setSelectedTrack(track.id)}
-                  className={`kea-card p-6 text-left transition-all ${
-                    isSelected
-                      ? 'border-blue-500/30 bg-blue-500/[0.04] shadow-[0_0_30px_rgba(59,130,246,0.1)]'
-                      : ''
-                  }`}
+                  transition={{ delay: i * 0.05 }}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
-                      <Icon size={22} className="text-blue-400" />
+                  <button
+                    onClick={() => startSession(track.id)}
+                    disabled={!!creating}
+                    className="w-full text-left"
+                  >
+                    <div className={`kea-card kea-card-interactive p-4 bg-gradient-to-br ${color}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0">
+                          {isCreating ? (
+                            <Loader2 size={18} className="animate-spin text-blue-400" />
+                          ) : (
+                            <Icon size={18} className="text-blue-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-white">{track.name}</h4>
+                          <div className="flex items-center gap-3 text-[11px] text-white/30 mt-0.5">
+                            <span>{stats.sessions} {t('chat.sessions')}</span>
+                            <span>{stats.completion}% {t('chat.complete')}</span>
+                          </div>
+                        </div>
+                        <ArrowRight size={14} className="text-white/20 shrink-0" />
+                      </div>
+                      <div className="mt-3 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                          style={{ width: `${stats.completion}%` }}
+                        />
+                      </div>
                     </div>
-                    <span className="kea-badge kea-badge-blue">{track.code}</span>
-                  </div>
-                  <h4 className="text-base font-semibold text-white mb-1">{track.name}</h4>
-                  <p className="text-xs text-white/35 mb-4">{track.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-xs text-white/25">
-                      <span>{stats.sessions} sessions</span>
-                      <span>{stats.completion}% complete</span>
-                    </div>
-                    <span className="kea-badge kea-badge-green text-[10px]">
-                      {track.conversation_style === 'open_ended' ? 'Open-ended' : 'Guided'}
-                    </span>
-                  </div>
-                  <div className="mt-3 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
-                      style={{ width: `${stats.completion}%` }}
-                    />
-                  </div>
-                </motion.button>
+                  </button>
+                </motion.div>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* Start new session button */}
-      {selectedTrack && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center"
-        >
-          <button
-            onClick={startNewSession}
-            disabled={creating}
-            className="kea-btn-primary inline-flex items-center gap-2 px-8"
-          >
-            {creating ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Plus size={18} />
-            )}
-            {t('chat.newSession')}
-            <ArrowRight size={16} />
-          </button>
-        </motion.div>
+      {/* Recent sessions */}
+      {sessions.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
+            {t('chat.recentSessions')}
+          </h3>
+          <div className="space-y-2">
+            {sessions.map((session, i) => (
+              <motion.div
+                key={session.id}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.03 }}
+              >
+                <Link href={`/kea/chat/${session.id}`}>
+                  <div className="kea-card kea-card-interactive px-4 py-3 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center shrink-0">
+                      <MessageSquare size={14} className="text-white/30" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white/70 truncate">
+                        {session.summary || session.trackName || 'Session'}
+                      </p>
+                      <p className="text-[10px] text-white/20">
+                        {session.trackCode} &bull; {new Date(session.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        session.status === 'active' ? 'bg-emerald-400' : 'bg-white/20'
+                      }`} />
+                      <Clock size={10} className="text-white/15" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Recent sessions */}
-      <div>
-        <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4">
-          {t('chat.previousSessions')}
-        </h3>
-        <div className="kea-card overflow-hidden">
-          {sessions.length === 0 ? (
-            <div className="p-6 text-center text-sm text-white/25">
-              No sessions yet. Select a track and start a new session.
-            </div>
-          ) : (
-            sessions.map((session, i) => (
-              <Link key={session.id} href={`/kea/chat/${session.id}`}>
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.05 }}
-                  className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-0"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-                    <MessageSquare size={15} className="text-white/30" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/80 font-medium truncate">
-                      {session.summary || `Session — ${new Date(session.created_at).toLocaleDateString()}`}
-                    </p>
-                    <p className="text-xs text-white/25">
-                      {session.track?.code} — {session.track?.name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span
-                      className={`kea-badge ${
-                        session.status === 'active'
-                          ? 'kea-badge-green'
-                          : session.status === 'paused'
-                            ? 'kea-badge-amber'
-                            : 'kea-badge-blue'
-                      }`}
-                    >
-                      {session.status}
-                    </span>
-                    <span className="text-xs text-white/20 flex items-center gap-1">
-                      <Clock size={11} />
-                      {new Date(session.created_at).toLocaleDateString()}
-                    </span>
-                    <ArrowRight size={14} className="text-white/15" />
-                  </div>
-                </motion.div>
-              </Link>
-            ))
-          )}
-        </div>
-      </div>
+      {sessions.length === 0 && tracks.length > 0 && (
+        <p className="text-center text-xs text-white/20 py-4">{t('chat.noSessionsYet')}</p>
+      )}
     </div>
   );
 }

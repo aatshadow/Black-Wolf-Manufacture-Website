@@ -170,6 +170,23 @@ const translations = {
   'client.paused': { en: 'Paused', bg: 'На пауза', es: 'Pausada' },
   'client.remaining': { en: 'Remaining', bg: 'Остават', es: 'Restantes' },
   'client.estimated': { en: 'Estimated', bg: 'Очаквано', es: 'Estimado' },
+
+  // ── Chat Session ──
+  'chat.backToChat': { en: 'Back to Chat', bg: 'Назад към чат', es: 'Volver al chat' },
+  'chat.blockProgress': { en: 'Block Progress', bg: 'Напредък по блокове', es: 'Progreso por bloques' },
+  'chat.discoveredEntities': { en: 'Discovered Entities', bg: 'Открити обекти', es: 'Entidades descubiertas' },
+  'chat.sessionActive': { en: 'Session active', bg: 'Сесията е активна', es: 'Sesion activa' },
+  'chat.sessionPaused': { en: 'Session paused', bg: 'Сесията е на пауза', es: 'Sesion pausada' },
+  'chat.keaThinking': { en: 'KEA is thinking...', bg: 'KEA мисли...', es: 'KEA esta pensando...' },
+  'chat.sessionNotFound': { en: 'Session not found', bg: 'Сесията не е намерена', es: 'Sesion no encontrada' },
+  'chat.overall': { en: 'overall', bg: 'общо', es: 'general' },
+  'chat.inputHint': { en: 'Shift+Enter for new line', bg: 'Shift+Enter за нов ред', es: 'Shift+Enter para nueva linea' },
+  'chat.pickTrack': { en: 'Pick a track', bg: 'Изберете пътека', es: 'Elige una pista' },
+  'chat.sessions': { en: 'sessions', bg: 'сесии', es: 'sesiones' },
+  'chat.complete': { en: 'complete', bg: 'завършено', es: 'completado' },
+  'chat.startSession': { en: 'Start Session', bg: 'Започни сесия', es: 'Iniciar sesion' },
+  'chat.recentSessions': { en: 'Recent Sessions', bg: 'Последни сесии', es: 'Sesiones recientes' },
+  'chat.noSessionsYet': { en: 'No sessions yet. Pick a track above to start.', bg: 'Все още няма сесии. Изберете пътека по-горе.', es: 'Sin sesiones aun. Elige una pista arriba.' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

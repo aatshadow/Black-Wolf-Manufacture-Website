@@ -245,15 +245,18 @@ RULES:
       const mergedMsgIds = [...new Set([...existingMsgIds, ...messageIds])];
 
       // ── Upsert extraction_instance ──────────────────────────────
-      await supabase
+      const { error: updateErr } = await supabase
         .from('extraction_instances')
         .update({
           data: currentData,
           completeness_pct: completeness,
-          last_touched_at: new Date().toISOString(),
           source_messages: mergedMsgIds,
         })
         .eq('id', instance.id);
+
+      if (updateErr) {
+        console.error(`[EXTRACT] Update failed for ${instance.id}:`, updateErr.message);
+      }
 
       // Keep local cache in sync
       instance.data = currentData;
