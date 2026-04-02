@@ -99,29 +99,47 @@ export async function POST(request: Request) {
       })
       .join('\n\n');
 
-    const systemPrompt = `You are an extraction engine. Analyze the conversation below and extract structured data that maps to the schema fields.
+    // Build existing data context so the LLM knows what's already filled
+    let existingDataContext = '';
+    for (const block of blocks) {
+      const inst = instanceByBlock.get(block.id);
+      if (inst) {
+        const data = (inst.data ?? {}) as Record<string, unknown>;
+        const filled = Object.entries(data).filter(([, v]) => v != null);
+        if (filled.length > 0) {
+          existingDataContext += `\n  Block "${block.code}" already has: ${filled.map(([k]) => k).join(', ')}`;
+        }
+      }
+    }
+
+    const systemPrompt = `You are a precision extraction engine for a manufacturing ERP knowledge base. Analyze the conversation and extract ALL structured data that maps to the schema fields.
 
 SCHEMA:
 ${schemaDescription}
+${existingDataContext ? `\nALREADY EXTRACTED (do not duplicate unless value changed):${existingDataContext}` : ''}
 
-For each piece of information found, output a JSON array of extractions:
+OUTPUT FORMAT — JSON array:
 [
   {
-    "block_code": "...",
-    "field_code": "...",
-    "value": <extracted value>,
+    "block_code": "exact_block_code",
+    "field_code": "exact_field_code",
+    "value": <extracted value — use appropriate type: string, number, array, or object>,
     "confidence": 0.0-1.0,
-    "source_quote": "exact quote from conversation"
+    "source_quote": "exact quote"
   }
 ]
 
-RULES:
-- Only extract information explicitly stated by the user
-- Never infer or assume values
-- Confidence: 1.0 = explicitly stated, 0.8 = strongly implied, 0.6 = somewhat implied
-- If a value contradicts a previously extracted value, still extract it with the new value
-- Output ONLY the JSON array, nothing else
-- If no information can be extracted, output an empty array: []`;
+EXTRACTION RULES:
+1. Extract EVERY piece of information that maps to a schema field — be thorough
+2. For JSON fields (type: json), structure the value as an object or array with meaningful keys
+3. For multi_select fields, return an array of strings
+4. For number fields, return a numeric value (not a string)
+5. ONE extraction per field per block — if the user mentions multiple items for the same field, combine them into one structured value
+6. Cross-reference across blocks: if the user mentions materials, check BOTH product_families AND bom blocks
+7. Confidence: 1.0 = explicitly stated, 0.8 = strongly implied, 0.6 = somewhat implied
+8. If a value contradicts a previously extracted value, extract the NEW value
+9. NEVER fabricate data — only extract what the user explicitly said
+10. Output ONLY the JSON array, nothing else. Empty = []`;
 
     const conversationText = messages
       .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
@@ -130,7 +148,7 @@ RULES:
     // ── 5. Call Claude (non-streaming) ───────────────────────────────
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: 'user', content: conversationText }],
     });
