@@ -4,36 +4,30 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   MessageSquare,
-  Database,
-  AlertTriangle,
   Users,
   Clock,
   Zap,
   ArrowRight,
-  Sparkles,
-  FileText,
-  Activity,
-  Shield,
-  Settings,
-  Download,
-  LayoutGrid,
-  Rocket,
+  Building2,
+  Plus,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
-import { supabase } from '@/lib/kea/supabase-client';
 import { useT } from '@/lib/kea/i18n';
 import { ClientDashboard } from '@/components/kea/dashboard/ClientDashboard';
 
-interface TrackWithStats {
+interface ClientSummary {
   id: string;
   name: string;
-  code: string;
-  conversation_style: string;
+  slug: string;
+  status: string;
+  globalCompletion: number;
   sessions: number;
-  completion: number;
-  lastActive: string;
-  blockCount: number;
+  users: number;
+  totalFields: number;
+  filledFields: number;
+  lastActivity: string | null;
 }
 
 interface ActivityItem {
@@ -43,8 +37,8 @@ interface ActivityItem {
   icon: React.ElementType;
 }
 
-function ProgressRing({ percentage, size = 80 }: { percentage: number; size?: number }) {
-  const strokeWidth = 6;
+function ProgressRing({ percentage, size = 48 }: { percentage: number; size?: number }) {
+  const strokeWidth = 4;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
@@ -63,157 +57,88 @@ function ProgressRing({ percentage, size = 80 }: { percentage: number; size?: nu
           transition={{ duration: 1.5, ease: 'easeOut' }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-bold text-white">{percentage}%</span>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-bold text-white">{percentage}%</span>
       </div>
     </div>
   );
 }
 
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return 'Never';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}h ago`;
+  return `${Math.floor(mins / 1440)}d ago`;
+}
+
 export default function DashboardPage() {
-  const organization = useAuthStore((s) => s.organization);
   const user = useAuthStore((s) => s.user);
   const t = useT();
-  const [dataPoints, setDataPoints] = useState(0);
-  const [sessionCount, setSessionCount] = useState(0);
-  const [alertCount, setAlertCount] = useState(0);
-  const [userCount, setUserCount] = useState(0);
-  const [tracks, setTracks] = useState<TrackWithStats[]>([]);
+  const [clients, setClients] = useState<ClientSummary[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [globalCompletion, setGlobalCompletion] = useState(0);
-  const [templateCount, setTemplateCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      if (!organization?.id) return;
-      const orgId = organization.id;
+    if (user?.role !== 'admin') return;
 
-      // Parallel queries
-      const [
-        { count: sessCount },
-        { count: alertCt },
-        { count: userCt },
-        { data: instances },
-        { data: templates },
-      ] = await Promise.all([
-        supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('organization_id', orgId),
-        supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('organization_id', orgId).eq('status', 'open'),
-        supabase.from('user_profiles').select('*', { count: 'exact', head: true }).eq('organization_id', orgId),
-        supabase.from('extraction_instances').select('data').eq('organization_id', orgId),
-        supabase.from('templates').select('id').eq('organization_id', orgId),
-      ]);
+    const load = async () => {
+      // Fetch all orgs
+      const res = await fetch('/api/kea/admin-data');
+      const data = await res.json();
+      const orgs = data.organizations || [];
 
-      setSessionCount(sessCount || 0);
-      setAlertCount(alertCt || 0);
-      setUserCount(userCt || 0);
-      setTemplateCount(templates?.length || 0);
+      // For each org, get progress
+      const summaries: ClientSummary[] = [];
+      const allActivities: ActivityItem[] = [];
 
-      let totalDataPoints = 0;
-      if (instances) {
-        for (const inst of instances) {
-          const data = inst.data as Record<string, unknown> | null;
-          if (data) totalDataPoints += Object.values(data).filter((v) => v != null).length;
-        }
-      }
-      setDataPoints(totalDataPoints);
+      await Promise.all(
+        orgs.map(async (org: { id: string; name: string; slug: string; status: string }) => {
+          const [progressRes, usersRes] = await Promise.all([
+            fetch(`/api/kea/client-progress?organizationId=${org.id}`),
+            fetch(`/api/kea/admin-data?usersForOrg=${org.id}`),
+          ]);
+          const progress = await progressRes.json();
+          const usersData = await usersRes.json();
 
-      // Load tracks
-      if (templates?.length) {
-        const templateIds = templates.map((t) => t.id);
-        const { data: trackData } = await supabase
-          .from('tracks')
-          .select('id, name, code, conversation_style')
-          .in('template_id', templateIds)
-          .order('display_order');
+          summaries.push({
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            status: org.status,
+            globalCompletion: progress.globalCompletion || 0,
+            sessions: progress.sessions || 0,
+            users: (usersData.users || []).length,
+            totalFields: progress.totalFields || 0,
+            filledFields: progress.filledFields || 0,
+            lastActivity: progress.lastActivity,
+          });
 
-        if (trackData) {
-          const trackStats: TrackWithStats[] = [];
-          let totalCompletion = 0;
-
-          for (const track of trackData) {
-            const [{ count }, { data: lastSess }, { data: progress }, { count: blockCount }] = await Promise.all([
-              supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('track_id', track.id),
-              supabase.from('sessions').select('created_at').eq('track_id', track.id).order('created_at', { ascending: false }).limit(1),
-              supabase.from('progress_snapshots').select('completeness_pct').eq('track_id', track.id).is('block_id', null).order('snapshot_date', { ascending: false }).limit(1),
-              supabase.from('schema_blocks').select('*', { count: 'exact', head: true }).eq('track_id', track.id),
-            ]);
-
-            const completion = progress?.[0]?.completeness_pct || 0;
-            totalCompletion += completion;
-
-            const lastDate = lastSess?.[0]?.created_at;
-            let lastActive = 'Never';
-            if (lastDate) {
-              const diff = Date.now() - new Date(lastDate).getTime();
-              const mins = Math.floor(diff / 60000);
-              if (mins < 60) lastActive = `${mins}m ago`;
-              else if (mins < 1440) lastActive = `${Math.floor(mins / 60)}h ago`;
-              else lastActive = `${Math.floor(mins / 1440)}d ago`;
-            }
-
-            trackStats.push({
-              id: track.id,
-              name: track.name,
-              code: track.code,
-              conversation_style: track.conversation_style,
-              sessions: count || 0,
-              completion,
-              lastActive,
-              blockCount: blockCount || 0,
+          // Collect activity from this org
+          if (progress.lastActivity) {
+            allActivities.push({
+              action: 'Session activity',
+              detail: org.name,
+              time: timeAgo(progress.lastActivity),
+              icon: MessageSquare,
             });
           }
+        })
+      );
 
-          setTracks(trackStats);
-          setGlobalCompletion(trackStats.length ? Math.round(totalCompletion / trackStats.length) : 0);
-        }
-      }
-
-      // Recent activity
-      const activityItems: ActivityItem[] = [];
-      const { data: recentExtractions } = await supabase
-        .from('extraction_history')
-        .select('field_code, new_value, created_at, instance:extraction_instances(instance_label)')
-        .eq('source', 'bot_extracted')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (recentExtractions) {
-        for (const ext of recentExtractions) {
-          const inst = ext.instance as unknown as { instance_label: string } | null;
-          const diff = Date.now() - new Date(ext.created_at).getTime();
-          const mins = Math.floor(diff / 60000);
-          const timeStr = mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`;
-          activityItems.push({ action: 'Data extracted', detail: `${inst?.instance_label || ''} — ${ext.field_code}`, time: timeStr, icon: Zap });
-        }
-      }
-
-      const { data: recentSessions } = await supabase
-        .from('sessions')
-        .select('status, created_at, track:tracks(name, code)')
-        .eq('organization_id', orgId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (recentSessions) {
-        for (const sess of recentSessions) {
-          const track = sess.track as unknown as { name: string; code: string } | null;
-          const diff = Date.now() - new Date(sess.created_at).getTime();
-          const mins = Math.floor(diff / 60000);
-          const timeStr = mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`;
-          activityItems.push({
-            action: sess.status === 'completed' ? 'Session completed' : 'Session started',
-            detail: `${track?.name || 'Session'}`,
-            time: timeStr,
-            icon: sess.status === 'completed' ? MessageSquare : Clock,
-          });
-        }
-      }
-
-      setActivities(activityItems.slice(0, 8));
+      setClients(summaries);
+      setActivities(allActivities.slice(0, 6));
+      setLoading(false);
     };
 
-    loadDashboard();
-  }, [organization?.id]);
+    load();
+  }, [user?.role]);
+
+  // Client users get the simplified dashboard
+  if (user?.role !== 'admin') {
+    return <ClientDashboard />;
+  }
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -222,24 +147,16 @@ export default function DashboardPage() {
     return t('dash.greeting.evening');
   })();
 
-  const shortcuts = [
-    { label: t('dash.startChat'), desc: t('dash.startChat.desc'), href: '/kea/chat', icon: MessageSquare, color: 'from-blue-500/20 to-blue-600/10', border: 'border-blue-500/20', iconColor: 'text-blue-400' },
-    { label: t('dash.schemas'), desc: t('dash.schemas.desc'), href: '/kea/dashboard/schemas', icon: Sparkles, color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/20', iconColor: 'text-purple-400' },
-    { label: t('dash.monitor'), desc: t('dash.monitor.desc'), href: '/kea/dashboard/monitor', icon: Activity, color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/20', iconColor: 'text-emerald-400' },
-    { label: t('dash.export'), desc: t('dash.export.desc'), href: '/kea/dashboard/export', icon: Download, color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/20', iconColor: 'text-amber-400' },
-    { label: t('dash.users'), desc: t('dash.users.desc'), href: '/kea/dashboard/users', icon: Users, color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/20', iconColor: 'text-cyan-400' },
-    { label: t('dash.alerts'), desc: t('dash.alerts.desc'), href: '/kea/dashboard/alerts', icon: AlertTriangle, color: 'from-red-500/20 to-red-600/10', border: 'border-red-500/20', iconColor: 'text-red-400' },
-  ];
-
-  // Client users get the simplified dashboard
-  if (user?.role !== 'admin') {
-    return <ClientDashboard />;
-  }
+  const totalSessions = clients.reduce((s, c) => s + c.sessions, 0);
+  const totalUsers = clients.reduce((s, c) => s + c.users, 0);
+  const avgCompletion = clients.length
+    ? Math.round(clients.reduce((s, c) => s + c.globalCompletion, 0) / clients.length)
+    : 0;
 
   return (
-    <div className="space-y-6 max-w-[1400px]">
+    <div className="space-y-6 max-w-[1200px]">
 
-      {/* ═══ WELCOME HEADER ═══ */}
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -247,119 +164,97 @@ export default function DashboardPage() {
       >
         <div>
           <h1 className="text-xl font-bold text-white">
-            {greeting}, {user?.full_name?.split(' ')[0] || 'there'}
+            {greeting}, {user?.full_name?.split(' ')[0] || 'Admin'}
           </h1>
-          <p className="text-sm text-white/30 mt-0.5">
-            {organization?.name} &middot; {t('dash.keTitle')}
-          </p>
+          <p className="text-sm text-white/30 mt-0.5">KEA Admin Panel</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/kea/chat" className="kea-btn-primary text-sm flex items-center gap-2">
-            <MessageSquare size={14} />
-            {t('dash.startSession')}
-          </Link>
-        </div>
+        <Link href="/kea/dashboard/clients" className="kea-btn-primary text-sm flex items-center gap-2">
+          <Plus size={14} />
+          {t('nav.clients')}
+        </Link>
       </motion.div>
 
-      {/* ═══ QUICK ACCESS WIDGETS (iPad-style grid) ═══ */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {shortcuts.map((item, i) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <Link href={item.href}>
-              <div className="kea-card kea-card-interactive p-4 text-center group h-full">
-                <div className={`w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br ${item.color} border ${item.border} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                  <item.icon size={20} className={item.iconColor} />
-                </div>
-                <p className="text-sm font-semibold text-white/80">{item.label}</p>
-                <p className="text-[10px] text-white/25 mt-0.5">{item.desc}</p>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* ═══ STATS ROW ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: t('dash.globalProgress'), value: `${globalCompletion}%`, color: globalCompletion > 66 ? 'text-emerald-400' : globalCompletion > 33 ? 'text-amber-400' : 'text-red-400' },
-          { label: t('dash.dataPoints'), value: dataPoints.toLocaleString(), color: 'text-blue-400' },
-          { label: t('dash.sessions'), value: sessionCount.toString(), color: 'text-purple-400' },
-          { label: t('dash.openAlerts'), value: alertCount.toString(), color: alertCount > 0 ? 'text-red-400' : 'text-emerald-400' },
-          { label: t('dash.teamMembers'), value: userCount.toString(), color: 'text-cyan-400' },
+          { label: t('nav.clients'), value: clients.length.toString(), icon: Building2, color: 'text-blue-400' },
+          { label: t('dash.globalProgress'), value: `${avgCompletion}%`, icon: BarChart3, color: avgCompletion > 66 ? 'text-emerald-400' : avgCompletion > 33 ? 'text-amber-400' : 'text-red-400' },
+          { label: t('dash.sessions'), value: totalSessions.toString(), icon: MessageSquare, color: 'text-purple-400' },
+          { label: t('dash.teamMembers'), value: totalUsers.toString(), icon: Users, color: 'text-cyan-400' },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + i * 0.05 }}
-            className="kea-card p-4"
+            transition={{ delay: 0.1 + i * 0.05 }}
+            className="kea-card p-4 flex items-center gap-3"
           >
-            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-            <p className="text-[10px] text-white/30 mt-1 uppercase tracking-wider">{stat.label}</p>
+            <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0">
+              <stat.icon size={18} className={stat.color} />
+            </div>
+            <div>
+              <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-[10px] text-white/25 uppercase tracking-wider">{stat.label}</p>
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* ═══ MAIN GRID: Tracks + Progress + Activity ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Client Cards */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider">{t('nav.clients')}</h2>
+          <Link href="/kea/dashboard/clients" className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1">
+            Manage <ArrowRight size={10} />
+          </Link>
+        </div>
 
-        {/* Left: Track Progress Cards (span 5) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="lg:col-span-5 space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-              {t('dash.extractionTracks')}
-            </h3>
-            <Link href="/kea/chat" className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1">
-              {t('dash.viewAll')} <ArrowRight size={10} />
+        {loading ? (
+          <div className="kea-card p-12 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+          </div>
+        ) : clients.length === 0 ? (
+          <div className="kea-card p-8 text-center">
+            <Building2 size={24} className="text-white/10 mx-auto mb-2" />
+            <p className="text-sm text-white/30">No clients yet</p>
+            <Link href="/kea/dashboard/clients" className="text-xs text-blue-400 hover:underline mt-1 inline-block">
+              Create your first client
             </Link>
           </div>
-
-          {tracks.length === 0 ? (
-            <div className="kea-card p-8 text-center">
-              <LayoutGrid size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-sm text-white/30">{t('dash.noTracks')}</p>
-              <p className="text-xs text-white/15 mt-1">{t('dash.noTracks.desc')}</p>
-            </div>
-          ) : (
-            tracks.map((track, i) => (
+        ) : (
+          <div className="space-y-3">
+            {clients.map((client, i) => (
               <motion.div
-                key={track.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
+                key={client.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.05 }}
               >
-                <Link href="/kea/chat">
+                <Link href="/kea/dashboard/clients">
                   <div className="kea-card kea-card-interactive p-4">
                     <div className="flex items-center gap-4">
-                      <ProgressRing percentage={track.completion} size={56} />
+                      <ProgressRing percentage={client.globalCompletion} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-semibold text-white truncate">{track.name}</h4>
-                          <span className={`kea-badge text-[9px] ${track.conversation_style === 'open_ended' ? 'kea-badge-blue' : 'kea-badge-green'}`}>
-                            {track.conversation_style === 'open_ended' ? 'Open' : 'Guided'}
+                          <h3 className="text-sm font-semibold text-white truncate">{client.name}</h3>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                            client.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/[0.06] text-white/30'
+                          }`}>
+                            {client.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-[11px] text-white/30">
-                          <span>{track.sessions} sessions</span>
-                          <span>{track.blockCount} blocks</span>
-                          <span>{track.lastActive}</span>
+                        <div className="flex items-center gap-4 text-[11px] text-white/30">
+                          <span className="flex items-center gap-1"><Users size={10} /> {client.users} users</span>
+                          <span className="flex items-center gap-1"><MessageSquare size={10} /> {client.sessions} sessions</span>
+                          <span className="flex items-center gap-1"><Zap size={10} /> {client.filledFields}/{client.totalFields} fields</span>
+                          <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(client.lastActivity)}</span>
                         </div>
                         <div className="mt-2 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
                           <motion.div
                             className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
                             initial={{ width: 0 }}
-                            animate={{ width: `${track.completion}%` }}
-                            transition={{ duration: 1, delay: 0.6 + i * 0.1 }}
+                            animate={{ width: `${client.globalCompletion}%` }}
+                            transition={{ duration: 1, delay: 0.3 + i * 0.05 }}
                           />
                         </div>
                       </div>
@@ -368,140 +263,33 @@ export default function DashboardPage() {
                   </div>
                 </Link>
               </motion.div>
-            ))
-          )}
-        </motion.div>
-
-        {/* Center: Global Progress Ring (span 3) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="lg:col-span-3"
-        >
-          <div className="kea-card p-6 flex flex-col items-center h-full">
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4 self-start">
-              {t('dash.discoveryProgress')}
-            </h3>
-            <div className="flex-1 flex items-center justify-center">
-              <ProgressRing percentage={globalCompletion} size={140} />
-            </div>
-            <div className="w-full space-y-2 mt-4">
-              {tracks.map((track) => (
-                <div key={track.id} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${track.conversation_style === 'open_ended' ? 'bg-blue-400' : 'bg-emerald-400'}`} />
-                    <span className="text-white/40 truncate max-w-[120px]">{track.name}</span>
-                  </div>
-                  <span className="text-white/60 font-semibold">{track.completion}%</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick info */}
-            <div className="w-full mt-4 pt-4 border-t border-white/[0.04] grid grid-cols-2 gap-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-white">{templateCount}</p>
-                <p className="text-[10px] text-white/25">{t('dash.templates')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-bold text-white">{tracks.length}</p>
-                <p className="text-[10px] text-white/25">{t('dash.tracks')}</p>
-              </div>
-            </div>
+            ))}
           </div>
-        </motion.div>
-
-        {/* Right: Activity Feed (span 4) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="lg:col-span-4"
-        >
-          <div className="kea-card p-5 h-full flex flex-col">
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
-              {t('dash.recentActivity')}
-            </h3>
-            <div className="flex-1 space-y-1 overflow-y-auto">
-              {activities.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center py-8">
-                  <p className="text-sm text-white/20">{t('dash.noActivity')}</p>
-                </div>
-              ) : (
-                activities.map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + i * 0.05 }}
-                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.02] transition-colors"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                        <Icon size={12} className="text-white/40" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-white/60 font-medium">{item.action}</p>
-                        <p className="text-[11px] text-white/25 truncate">{item.detail}</p>
-                      </div>
-                      <span className="text-[10px] text-white/15 shrink-0 mt-0.5">{item.time}</span>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </motion.div>
+        )}
       </div>
 
-      {/* ═══ BOTTOM ROW: Quick Actions ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-          <Link href="/kea/dashboard/export">
-            <div className="kea-card kea-card-interactive p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-600/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                <Rocket size={18} className="text-purple-400" />
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {[
+          { label: t('dash.createTemplate'), desc: t('dash.createTemplate.desc'), href: '/kea/dashboard/schemas', icon: Zap, color: 'text-purple-400', bg: 'from-purple-500/15 to-purple-600/5', border: 'border-purple-500/15' },
+          { label: t('dash.export'), desc: t('dash.export.desc'), href: '/kea/dashboard/export', icon: BarChart3, color: 'text-emerald-400', bg: 'from-emerald-500/15 to-emerald-600/5', border: 'border-emerald-500/15' },
+          { label: t('nav.clients'), desc: 'Add clients & users', href: '/kea/dashboard/clients', icon: Building2, color: 'text-blue-400', bg: 'from-blue-500/15 to-blue-600/5', border: 'border-blue-500/15' },
+        ].map((action, i) => (
+          <motion.div key={action.href} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.05 }}>
+            <Link href={action.href}>
+              <div className="kea-card kea-card-interactive p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.bg} border ${action.border} flex items-center justify-center shrink-0`}>
+                  <action.icon size={16} className={action.color} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white">{action.label}</p>
+                  <p className="text-[10px] text-white/25">{action.desc}</p>
+                </div>
+                <ArrowRight size={12} className="text-white/15" />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{t('dash.deployCentral')}</p>
-                <p className="text-[11px] text-white/25">{t('dash.deployCentral.desc')}</p>
-              </div>
-              <ArrowRight size={14} className="text-white/15" />
-            </div>
-          </Link>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }}>
-          <Link href="/kea/dashboard/schemas">
-            <div className="kea-card kea-card-interactive p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <FileText size={18} className="text-emerald-400" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{t('dash.createTemplate')}</p>
-                <p className="text-[11px] text-white/25">{t('dash.createTemplate.desc')}</p>
-              </div>
-              <ArrowRight size={14} className="text-white/15" />
-            </div>
-          </Link>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
-          <Link href="/kea/dashboard/settings">
-            <div className="kea-card kea-card-interactive p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/[0.08] flex items-center justify-center shrink-0">
-                <Settings size={18} className="text-white/40" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{t('dash.settings')}</p>
-                <p className="text-[11px] text-white/25">{t('dash.settings.desc')}</p>
-              </div>
-              <ArrowRight size={14} className="text-white/15" />
-            </div>
-          </Link>
-        </motion.div>
+            </Link>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
