@@ -113,11 +113,24 @@ After every message exchange:
 
 ---
 
-## The default template
+## Templates
 
-**"ERP Manufacturing - Full Extraction"** has 2 tracks, 9 blocks, and 101 fields:
+### How to create a template
 
-**Track 1: Production & Operations** (open-ended conversation style)
+1. Go to **Dashboard > Schemas**
+2. Click **Create with AI** — this opens a chat with the KEA Schema Architect
+3. Describe your industry, business type, and what you need to discover
+4. The AI will design tracks, blocks, and fields through conversation
+5. When you confirm, the AI outputs a `schema-json` block that is auto-saved to the database
+6. The template appears in your template list and can be cloned to any client
+
+Templates belong to the admin's organization (Black Wolf). When assigned to a client, a **deep clone** is created so each client has their own independent copy.
+
+### Template: "ERP Manufacturing - Full Extraction"
+
+General-purpose manufacturing ERP template. 2 tracks, 9 blocks, 101 fields.
+
+**Track 1: Production & Operations** (open-ended)
 - BOM / Technologies (repeatable - one per product)
 - Production Planning
 - Production Execution
@@ -125,14 +138,32 @@ After every message exchange:
 - Warehouse Management
 - Logistics & Distribution
 
-**Track 2: Finance, Sales & Administration** (guided conversation style)
+**Track 2: Finance, Sales & Administration** (guided)
 - Financial Management
 - Sales Management
 - Users & Roles
 
-The AI adjusts its conversation style per track:
-- **Open-ended**: curious, exploratory - lets the user talk freely
-- **Guided**: structured, offers common options - walks through a checklist
+### Template: "Custom Furniture Manufacturing - Parametric ERP"
+
+Specialized template for custom furniture factories needing a parametric product configurator and full ERP digitalization. 2 tracks, 8 blocks, 67 fields.
+
+**Track 1: Product & Parametric Engine** (open-ended)
+- Product Families & Catalog (repeatable) — dimensions, materials, finishes, pricing formulas, config rules
+- Bill of Materials (repeatable) — raw materials, consumption formulas, scrap, cost breakdown
+- Production Process — steps, machines, capacity, QC, traceability
+- Supply Chain & Purchasing — suppliers, lead times, warehouses, stock management
+
+**Track 2: Sales, Finance & Organization** (guided)
+- Sales & CRM — channels, quotations, customer types, delivery
+- Finance & Accounting — invoicing, payments, taxes, reporting
+- HR & Organization — team structure, roles, ERP permissions
+- IT & Digital Infrastructure — current systems, integrations, data migration, pain points
+
+### Conversation styles
+
+The AI adjusts per track:
+- **Open-ended**: curious, exploratory - lets the user talk freely and digs deep
+- **Guided**: structured, offers common options - walks through a checklist efficiently
 
 ---
 
