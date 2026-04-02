@@ -39,7 +39,9 @@ const pageTitles: Record<string, string> = {
   '/kea/onboarding': 'Setup',
 };
 
-const navItems: { section: TranslationKey; items: { nameKey: TranslationKey; href: string; icon: typeof LayoutDashboard }[] }[] = [
+type NavSection = { section: TranslationKey; items: { nameKey: TranslationKey; href: string; icon: typeof LayoutDashboard }[] };
+
+const adminNavItems: NavSection[] = [
   { section: 'nav.section.main', items: [
     { nameKey: 'nav.dashboard', href: '/kea/dashboard', icon: LayoutDashboard },
     { nameKey: 'nav.chat', href: '/kea/chat', icon: MessageSquare },
@@ -54,6 +56,13 @@ const navItems: { section: TranslationKey; items: { nameKey: TranslationKey; hre
     { nameKey: 'nav.alerts', href: '/kea/dashboard/alerts', icon: AlertTriangle },
     { nameKey: 'nav.users', href: '/kea/dashboard/users', icon: Users },
     { nameKey: 'nav.settings', href: '/kea/dashboard/settings', icon: Settings },
+  ]},
+];
+
+const clientNavItems: NavSection[] = [
+  { section: 'nav.section.main', items: [
+    { nameKey: 'nav.dashboard', href: '/kea/dashboard', icon: LayoutDashboard },
+    { nameKey: 'nav.chat', href: '/kea/chat', icon: MessageSquare },
   ]},
 ];
 
@@ -139,11 +148,13 @@ export function Header() {
 
                 {/* Nav sections */}
                 <div className="py-2 max-h-[60vh] overflow-y-auto">
-                  {navItems.map((section) => (
+                  {(user?.role === 'admin' ? adminNavItems : clientNavItems).map((section) => (
                     <div key={section.section}>
-                      <p className="px-4 pt-3 pb-1 text-[10px] font-semibold text-white/20 uppercase tracking-widest">
-                        {t(section.section)}
-                      </p>
+                      {user?.role === 'admin' && (
+                        <p className="px-4 pt-3 pb-1 text-[10px] font-semibold text-white/20 uppercase tracking-widest">
+                          {t(section.section)}
+                        </p>
+                      )}
                       {section.items.map((item) => {
                         const isActive = pathname === item.href ||
                           (item.href !== '/kea/dashboard' && pathname.startsWith(item.href));

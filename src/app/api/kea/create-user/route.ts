@@ -79,6 +79,14 @@ export async function DELETE(request: Request) {
     }
 
     const supabase = getSupabaseAdmin();
+
+    // Delete related data first (messages, sessions, injected_questions, profile)
+    await supabase.from('messages').delete().eq('user_id', userId);
+    await supabase.from('sessions').delete().eq('user_id', userId);
+    await supabase.from('injected_questions').delete().eq('asked_by', userId);
+    await supabase.from('user_profiles').delete().eq('id', userId);
+
+    // Finally delete auth user
     const { error } = await supabase.auth.admin.deleteUser(userId);
 
     if (error) {

@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
 import { supabase } from '@/lib/kea/supabase-client';
 import { useT } from '@/lib/kea/i18n';
+import { ClientDashboard } from '@/components/kea/dashboard/ClientDashboard';
 
 interface TrackWithStats {
   id: string;
@@ -229,6 +230,11 @@ export default function DashboardPage() {
     { label: t('dash.users'), desc: t('dash.users.desc'), href: '/kea/dashboard/users', icon: Users, color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/20', iconColor: 'text-cyan-400' },
     { label: t('dash.alerts'), desc: t('dash.alerts.desc'), href: '/kea/dashboard/alerts', icon: AlertTriangle, color: 'from-red-500/20 to-red-600/10', border: 'border-red-500/20', iconColor: 'text-red-400' },
   ];
+
+  // Client users get the simplified dashboard
+  if (user?.role !== 'admin') {
+    return <ClientDashboard />;
+  }
 
   return (
     <div className="space-y-6 max-w-[1400px]">

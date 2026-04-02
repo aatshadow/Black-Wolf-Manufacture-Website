@@ -221,13 +221,19 @@ export default function ChatHubPage() {
         </h3>
         {tracks.length === 0 ? (
           <div className="kea-card p-8 text-center">
-            <p className="text-sm text-white/40 mb-2">No tracks available yet.</p>
-            <p className="text-xs text-white/25">
-              Create a template first in{' '}
-              <Link href="/kea/dashboard/schemas" className="text-blue-400 hover:underline">
-                Schemas
-              </Link>
-            </p>
+            {user?.role === 'admin' ? (
+              <>
+                <p className="text-sm text-white/40 mb-2">No tracks available yet.</p>
+                <p className="text-xs text-white/25">
+                  Create a template first in{' '}
+                  <Link href="/kea/dashboard/schemas" className="text-blue-400 hover:underline">
+                    Schemas
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-white/40">{t('client.noTracksAssigned')}</p>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

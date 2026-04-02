@@ -153,6 +153,23 @@ const translations = {
   'common.dataExtracted': { en: 'Data extracted', bg: 'Извлечени данни', es: 'Datos extraidos' },
   'common.sessionCompleted': { en: 'Session completed', bg: 'Сесия завършена', es: 'Sesion completada' },
   'common.sessionStarted': { en: 'Session started', bg: 'Сесия започната', es: 'Sesion iniciada' },
+
+  // ── Client Dashboard ──
+  'client.yourProgress': { en: 'Your Progress', bg: 'Вашият напредък', es: 'Tu progreso' },
+  'client.overallCompletion': { en: 'Overall Completion', bg: 'Общо завършване', es: 'Completado general' },
+  'client.trackProgress': { en: 'Track Progress', bg: 'Напредък по пътеки', es: 'Progreso por pistas' },
+  'client.continueSessions': { en: 'Your Sessions', bg: 'Вашите сесии', es: 'Tus sesiones' },
+  'client.startNewSession': { en: 'Start New Session', bg: 'Започни нова сесия', es: 'Iniciar nueva sesion' },
+  'client.continue': { en: 'Continue', bg: 'Продължи', es: 'Continuar' },
+  'client.start': { en: 'Start', bg: 'Започни', es: 'Empezar' },
+  'client.noTracksAssigned': { en: 'No tracks have been assigned yet. Contact your admin.', bg: 'Все още няма зададени пътеки. Свържете се с администратора.', es: 'Aun no se han asignado pistas. Contacta con tu administrador.' },
+  'client.fields': { en: 'fields', bg: 'полета', es: 'campos' },
+  'client.completed': { en: 'completed', bg: 'завършено', es: 'completado' },
+  'client.noSessions': { en: 'No sessions yet — start chatting to begin extraction', bg: 'Все още няма сесии — започнете чат, за да започне извличането', es: 'Sin sesiones aun — inicia un chat para comenzar la extraccion' },
+  'client.active': { en: 'Active', bg: 'Активна', es: 'Activa' },
+  'client.paused': { en: 'Paused', bg: 'На пауза', es: 'Pausada' },
+  'client.remaining': { en: 'Remaining', bg: 'Остават', es: 'Restantes' },
+  'client.estimated': { en: 'Estimated', bg: 'Очаквано', es: 'Estimado' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

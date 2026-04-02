@@ -23,7 +23,6 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/kea/stores/auth-store';
-import { supabase } from '@/lib/kea/supabase-client';
 
 interface ClientOrg {
   id: string;
@@ -149,38 +148,31 @@ export default function ClientsPage() {
   // Active tab per client
   const [activeTab, setActiveTab] = useState<Record<string, 'progress' | 'users'>>({});
 
-  const fetchClients = useCallback(async () => {
-    const { data } = await supabase
-      .from('organizations')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (data) setClients(data as ClientOrg[]);
+  const fetchAdminData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/kea/admin-data');
+      const data = await res.json();
+      if (data.organizations) setClients(data.organizations as ClientOrg[]);
+      if (data.templates) setTemplates(data.templates);
+    } catch {
+      // ignore
+    }
     setLoading(false);
   }, []);
 
-  const fetchTemplates = useCallback(async () => {
-    const { data } = await supabase
-      .from('templates')
-      .select('id, name, industry, organization_id')
-      .order('created_at', { ascending: false });
-    if (data) setTemplates(data);
-  }, []);
-
   useEffect(() => {
-    fetchClients();
-    fetchTemplates();
-  }, [fetchClients, fetchTemplates]);
+    fetchAdminData();
+  }, [fetchAdminData]);
 
   const loadClientData = async (clientId: string) => {
-    // Load users
+    // Load users via API (bypasses RLS)
     if (!clientUsers[clientId]) {
       setLoadingUsers(clientId);
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('id, full_name, role, created_at')
-        .eq('organization_id', clientId)
-        .order('created_at', { ascending: true });
-      if (data) setClientUsers((prev) => ({ ...prev, [clientId]: data }));
+      try {
+        const res = await fetch(`/api/kea/admin-data?usersForOrg=${clientId}`);
+        const data = await res.json();
+        if (data.users) setClientUsers((prev) => ({ ...prev, [clientId]: data.users }));
+      } catch { /* ignore */ }
       setLoadingUsers(null);
     }
 
@@ -243,8 +235,7 @@ export default function ClientsPage() {
         setNewLanguage('en');
         setNewTemplateId('');
         setShowCreate(false);
-        fetchClients();
-        fetchTemplates();
+        fetchAdminData();
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -264,8 +255,7 @@ export default function ClientsPage() {
       });
       const result = await res.json();
       if (result.success) {
-        fetchClients();
-        fetchTemplates();
+        fetchAdminData();
       } else {
         alert(`Error cloning template: ${result.error}`);
       }
@@ -298,12 +288,9 @@ export default function ClientsPage() {
       });
       const result = await res.json();
       if (result.success) {
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('id, full_name, role, created_at')
-          .eq('organization_id', clientId)
-          .order('created_at', { ascending: true });
-        if (data) setClientUsers((prev) => ({ ...prev, [clientId]: data }));
+        const usersRes = await fetch(`/api/kea/admin-data?usersForOrg=${clientId}`);
+        const usersData = await usersRes.json();
+        if (usersData.users) setClientUsers((prev) => ({ ...prev, [clientId]: usersData.users }));
         setNewUserName('');
         setNewUserEmail('');
         setNewUserPassword('');
@@ -321,12 +308,13 @@ export default function ClientsPage() {
 
   const handleRemoveUser = async (clientId: string, userId: string) => {
     if (!confirm('Remove this user?')) return;
-    await supabase.from('user_profiles').delete().eq('id', userId);
-    fetch('/api/kea/create-user', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    }).catch(() => {});
+    try {
+      await fetch('/api/kea/create-user', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+    } catch { /* ignore */ }
     setClientUsers((prev) => ({
       ...prev,
       [clientId]: (prev[clientId] || []).filter((u) => u.id !== userId),

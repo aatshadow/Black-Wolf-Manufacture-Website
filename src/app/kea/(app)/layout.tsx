@@ -49,6 +49,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     setLoading(false);
 
+    // Block non-admin users from admin-only routes
+    const adminOnlyPaths = [
+      '/kea/dashboard/clients',
+      '/kea/dashboard/schemas',
+      '/kea/dashboard/monitor',
+      '/kea/dashboard/export',
+      '/kea/dashboard/alerts',
+      '/kea/dashboard/users',
+      '/kea/dashboard/settings',
+    ];
+    if (profile.role !== 'admin' && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
+      window.location.href = '/kea/dashboard';
+      return;
+    }
+
     // Redirect non-admin users to onboarding on first login
     // Admin users skip onboarding (they manage clients, not do extraction)
     if (
