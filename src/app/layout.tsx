@@ -15,6 +15,16 @@ export const metadata: Metadata = {
   description:
     "All-in-one digital infrastructure for manufacturing companies. Operations, security, and intelligence — implemented in 5 weeks.",
   icons: { icon: "/img/logo.png" },
+  // Meta verification tag para Business Verification en Meta Business Manager.
+  // Reemplazar "REPLACE-ME-WITH-META-CODE" por el código real que Meta proporcione
+  // al añadir el dominio (Business Settings → Brand Safety → Domains → Verify).
+  // Alternativa más simple: verificar por DNS TXT record en Cloudflare (no requiere
+  // este meta tag). Ver SETUP-METAVERIFY.md en el root del repo ejambre.
+  verification: {
+    other: {
+      "facebook-domain-verification": "REPLACE-ME-WITH-META-CODE",
+    },
+  },
 };
 
 export default function RootLayout({
